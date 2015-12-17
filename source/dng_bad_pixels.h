@@ -23,6 +23,7 @@
 
 /*****************************************************************************/
 
+#include "dng_memory.h"
 #include "dng_opcodes.h"
 
 #include <vector>
@@ -102,11 +103,11 @@ class dng_bad_pixel_list
 	
 		// List of bad single pixels.
 	
-		std::vector<dng_point> fBadPoints;
+		dng_std_vector<dng_point> fBadPoints;
 		
 		// List of bad rectangles (usually single rows or columns).
 		
-		std::vector<dng_rect> fBadRects;
+		dng_std_vector<dng_rect> fBadRects;
 		
 	public:
 

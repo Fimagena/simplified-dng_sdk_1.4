@@ -30,6 +30,7 @@
 #include "dng_image.h"
 #include "dng_linearization_info.h"
 #include "dng_matrix.h"
+#include "dng_memory.h"
 #include "dng_mosaic_info.h"
 #include "dng_opcode_list.h"
 #include "dng_orientation.h"
@@ -175,7 +176,7 @@ class dng_noise_profile
 		
 	protected:
 
-		std::vector<dng_noise_function> fNoiseFunctions;
+		dng_std_vector<dng_noise_function> fNoiseFunctions;
 
 	public:
 
@@ -185,7 +186,7 @@ class dng_noise_profile
 
 		/// Create noise profile with the specified noise functions (1 per plane).
 
-		explicit dng_noise_profile (const std::vector<dng_noise_function> &functions);
+		explicit dng_noise_profile (const dng_std_vector<dng_noise_function> &functions);
 
 		/// Is the noise profile valid?
 
@@ -696,7 +697,7 @@ class dng_negative
 		
 		// List of camera profiles.
 		
-		std::vector<dng_camera_profile *> fCameraProfile;
+		dng_std_vector<dng_camera_profile *> fCameraProfile;
 		
 		// "As shot" camera profile name.
 		

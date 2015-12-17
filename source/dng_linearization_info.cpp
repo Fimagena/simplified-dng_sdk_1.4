@@ -22,6 +22,7 @@
 #include "dng_info.h"
 #include "dng_negative.h"
 #include "dng_pixel_buffer.h"
+#include "dng_safe_arithmetic.h"
 #include "dng_tag_types.h"
 #include "dng_tile_iterator.h"
 #include "dng_utils.h"
@@ -175,7 +176,8 @@ dng_linearize_plane::dng_linearize_plane (dng_host &host,
 	if (fBlack_2D_rows)
 		{
 		
-		fBlack_2D_buffer.Reset (host.Allocate (fBlack_2D_rows * fBlack_2D_cols * 4));
+		fBlack_2D_buffer.Reset (host.Allocate (
+			SafeUint32Mult (fBlack_2D_rows, fBlack_2D_cols, 4)));
 		
 		for (j = 0; j < fBlack_2D_rows; j++)
 			{
@@ -242,7 +244,8 @@ dng_linearize_plane::dng_linearize_plane (dng_host &host,
 	if (fBlack_1D_rows)
 		{
 		
-		fBlack_1D_buffer.Reset (host.Allocate (fBlack_1D_rows * 4));
+		fBlack_1D_buffer.Reset (host.Allocate (
+			SafeUint32Mult(fBlack_1D_rows, 4)));
 		
 		bool allZero = true;
 		
@@ -1206,7 +1209,8 @@ void dng_linearization_info::Parse (dng_host &host,
 	if (rawIFD.fLinearizationTableCount)
 		{
 		
-		uint32 size = rawIFD.fLinearizationTableCount * (uint32) sizeof (uint16);
+		uint32 size = SafeUint32Mult (rawIFD.fLinearizationTableCount,
+									  static_cast<uint32> (sizeof (uint16)));
 		
 		fLinearizationTable.Reset (host.Allocate (size));
 												      
@@ -1238,7 +1242,8 @@ void dng_linearization_info::Parse (dng_host &host,
 	if (rawIFD.fBlackLevelDeltaHCount)
 		{
 		
-		uint32 size = rawIFD.fBlackLevelDeltaHCount * (uint32) sizeof (real64);
+		uint32 size = SafeUint32Mult (rawIFD.fBlackLevelDeltaHCount,
+									  static_cast<uint32> (sizeof (real64)));
 		
 		fBlackDeltaH.Reset (host.Allocate (size));
 		
@@ -1258,7 +1263,8 @@ void dng_linearization_info::Parse (dng_host &host,
 	if (rawIFD.fBlackLevelDeltaVCount)
 		{
 		
-		uint32 size = rawIFD.fBlackLevelDeltaVCount * (uint32) sizeof (real64);
+		uint32 size = SafeUint32Mult (rawIFD.fBlackLevelDeltaVCount,
+									  static_cast<uint32> (sizeof (real64)));
 		
 		fBlackDeltaV.Reset (host.Allocate (size));
 		

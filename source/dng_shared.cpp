@@ -18,6 +18,7 @@
 #include "dng_camera_profile.h"
 #include "dng_exceptions.h"
 #include "dng_globals.h"
+#include "dng_memory.h"
 #include "dng_parse_utils.h"
 #include "dng_tag_codes.h"
 #include "dng_tag_types.h"
@@ -1342,7 +1343,7 @@ bool dng_shared::Parse_ifd0 (dng_stream &stream,
 			
 			CheckTagType (parentCode, tagCode, tagType, ttLong, ttAscii, ttUndefined);
 			
-			fIPTC_NAA_Count  = tagCount * TagTypeSize (tagType);
+			fIPTC_NAA_Count = SafeUint32Mult(tagCount, TagTypeSize(tagType));
 			fIPTC_NAA_Offset = fIPTC_NAA_Count ? tagOffset : 0;
 			
 			#if qDNGValidate
@@ -2001,7 +2002,7 @@ bool dng_shared::Parse_ifd0 (dng_stream &stream,
 
 			// Parse the noise function parameters.
 
-			std::vector<dng_noise_function> noiseFunctions;
+			dng_std_vector<dng_noise_function> noiseFunctions;
 
 			for (uint32 i = 0; i < numPlanes; i++)
 				{

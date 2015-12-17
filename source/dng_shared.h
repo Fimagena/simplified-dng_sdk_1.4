@@ -21,6 +21,7 @@
 #include "dng_classes.h"
 #include "dng_fingerprint.h"
 #include "dng_matrix.h"
+#include "dng_memory.h"
 #include "dng_negative.h"
 #include "dng_rational.h"
 #include "dng_string.h"
@@ -140,7 +141,7 @@ class dng_shared
 		
 		dng_camera_profile_info fCameraProfile;
 		
-		std::vector<dng_camera_profile_info> fExtraCameraProfiles;
+		dng_std_vector<dng_camera_profile_info> fExtraCameraProfiles;
 
 		dng_matrix fCameraCalibration1;
 		dng_matrix fCameraCalibration2;

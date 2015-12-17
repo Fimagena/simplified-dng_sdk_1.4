@@ -82,7 +82,20 @@ enum
 	pcInterleaved				= 1,
 	pcPlanar					= 2,
 	
-	pcRowInterleaved			= 100000		// Internal use only
+	// Ordering, using an RGB image as an example:
+	//
+	// RRRRRRRRRR
+	// GGGGGGGGGG
+	// BBBBBBBBBB
+	// RRRRRRRRRR
+	// GGGGGGGGGG
+	// BBBBBBBBBB
+	//
+	// The "Align16" variant additionally ensures that the offset of each
+	// plane's row is aligned to an integer multiple of 16 bytes from the
+	// beginning of the buffer.
+	pcRowInterleaved			= 100000,		// Internal use only
+	pcRowInterleavedAlign16		= 100001		// Internal use only
 	
 	};
 

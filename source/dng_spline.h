@@ -19,6 +19,7 @@
 /*****************************************************************************/
 
 #include "dng_1d_function.h"
+#include "dng_memory.h"
 
 #include <vector>
 
@@ -53,10 +54,10 @@ class dng_spline_solver: public dng_1d_function
 	
 	protected:
 	
-		std::vector<real64> X;
-		std::vector<real64> Y;
+		dng_std_vector<real64> X;
+		dng_std_vector<real64> Y;
 		
-		std::vector<real64> S;
+		dng_std_vector<real64> S;
 		
 	public:
 	

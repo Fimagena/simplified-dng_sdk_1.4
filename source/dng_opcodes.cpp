@@ -449,12 +449,8 @@ class dng_inplace_opcode_task: public dng_area_task
 							dng_abort_sniffer * /* sniffer */)
 			{
 			
-			uint32 pixelSize = TagTypeSize (fPixelType);
-								   
-			uint32 bufferSize = tileSize.v *
-								RoundUpForPixelSize (tileSize.h, pixelSize) *
-								pixelSize *
-								fImage.Planes ();
+			uint32 bufferSize = ComputeBufferSize(fPixelType, tileSize,
+												  fImage.Planes(), pad16Bytes);
 								   
 			for (uint32 threadIndex = 0; threadIndex < threadCount; threadIndex++)
 				{
@@ -480,23 +476,9 @@ class dng_inplace_opcode_task: public dng_area_task
 			
 			// Setup buffer.
 			
-			dng_pixel_buffer buffer;
-			
-			buffer.fArea = tile;
-			
-			buffer.fPlane  = 0;
-			buffer.fPlanes = fImage.Planes ();
-			
-			buffer.fPixelType  = fPixelType;
-			buffer.fPixelSize  = TagTypeSize (fPixelType);
-			
-			buffer.fPlaneStep = RoundUpForPixelSize (tile.W (),
-													 buffer.fPixelSize);
-			
-			buffer.fRowStep = buffer.fPlaneStep *
-							  buffer.fPlanes;
-					
-			buffer.fData = fBuffer [threadIndex]->Buffer ();
+			dng_pixel_buffer buffer(tile, 0, fImage.Planes (), fPixelType,
+									pcRowInterleavedAlign16,
+									fBuffer [threadIndex]->Buffer ());
 			
 			// Get source pixels.
 			

@@ -11,6 +11,23 @@
 /* $Change: 835078 $ */
 /* $Author: tknoll $ */
 
+// Process exit codes
+// ------------------
+//
+// As usual, 0 indicates success.
+//
+// If an exception occurs, the exit code will be equal to:
+//
+//    DNG SDK error code - 100000 + 100
+//
+// For example, the error dng_error_memory, which has a DNG SDK error code of
+// 100005, is returned as an exit code of 105.
+//
+// This convention accounts for the fact that the shell truncates process exit
+// codes to 8 bits and that the exit code 1 is used by ASAN to signal that a
+// memory error occurred (so mapping the first DNG SDK error code to an exit
+// code of 1 would not be a good idea).
+
 /*****************************************************************************/
 
 #include "dng_color_space.h"
@@ -846,10 +863,11 @@ int main (int argc, char *argv [])
 		while (index < argc)
 			{
 			
-			if (dng_validate (argv [index++]) != dng_error_none)
+			dng_error_code error_code = dng_validate (argv [index++]);
+			if (error_code != dng_error_none)
 				{
 				
-				result = 1;
+				result = error_code - dng_error_unknown + 100;
 				
 				}
 			

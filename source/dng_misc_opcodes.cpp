@@ -21,6 +21,7 @@
 #include "dng_host.h"
 #include "dng_image.h"
 #include "dng_rect.h"
+#include "dng_safe_arithmetic.h"
 #include "dng_stream.h"
 #include "dng_tag_values.h"
 
@@ -138,9 +139,25 @@ void dng_area_spec::GetData (dng_stream &stream)
 		ThrowBadFormat ();
 		}
 		
-	if (fArea.IsEmpty () && (fRowPitch != 1 || fColPitch != 1))
+	if (fArea.IsEmpty ())
 		{
-		ThrowBadFormat ();
+		if (fRowPitch != 1 || fColPitch != 1)
+			{
+			ThrowBadFormat ();
+			}
+		}
+		
+	else
+		{
+		int32 width = 0;
+		int32 height = 0;
+		if (!SafeInt32Sub (fArea.b, fArea.t, &height) ||
+			 !SafeInt32Sub (fArea.r, fArea.l, &width) ||
+			 fRowPitch > static_cast<uint32>(height) ||
+			 fColPitch > static_cast<uint32>(width))
+			{
+			ThrowBadFormat();
+			}
 		}
 		
 	#if qDNGValidate
@@ -837,9 +854,8 @@ dng_opcode_DeltaPerRow::dng_opcode_DeltaPerRow (dng_host &host,
 	
 	fAreaSpec.GetData (stream);
 	
-	uint32 deltas = (fAreaSpec.Area ().H () +
-					 fAreaSpec.RowPitch () - 1) /
-					 fAreaSpec.RowPitch ();
+	uint32 deltas = SafeUint32DivideUp (fAreaSpec.Area ().H (),
+										fAreaSpec.RowPitch ());
 					 
 	if (deltas != stream.Get_uint32 ())
 		{
@@ -851,7 +867,8 @@ dng_opcode_DeltaPerRow::dng_opcode_DeltaPerRow (dng_host &host,
 		ThrowBadFormat ();
 		}
 		
-	fTable.Reset (host.Allocate (deltas * (uint32) sizeof (real32)));
+	fTable.Reset (host.Allocate (SafeUint32Mult (deltas,
+		static_cast<uint32> (sizeof (real32)))));
 	
 	real32 *table = fTable->Buffer_real32 ();
 	
@@ -888,9 +905,8 @@ dng_opcode_DeltaPerRow::dng_opcode_DeltaPerRow (dng_host &host,
 void dng_opcode_DeltaPerRow::PutData (dng_stream &stream) const
 	{
 	
-	uint32 deltas = (fAreaSpec.Area ().H () +
-					 fAreaSpec.RowPitch () - 1) /
-					 fAreaSpec.RowPitch ();
+	uint32 deltas = SafeUint32DivideUp (fAreaSpec.Area ().H (),
+										fAreaSpec.RowPitch ());
 	
 	stream.Put_uint32 (dng_area_spec::kDataSize + 4 + deltas * 4);
 	
@@ -1044,9 +1060,8 @@ dng_opcode_DeltaPerColumn::dng_opcode_DeltaPerColumn (dng_host &host,
 	
 	fAreaSpec.GetData (stream);
 	
-	uint32 deltas = (fAreaSpec.Area ().W () +
-					 fAreaSpec.ColPitch () - 1) /
-					 fAreaSpec.ColPitch ();
+	uint32 deltas = SafeUint32DivideUp (fAreaSpec.Area ().W (),
+										fAreaSpec.ColPitch ());
 					 
 	if (deltas != stream.Get_uint32 ())
 		{
@@ -1058,7 +1073,8 @@ dng_opcode_DeltaPerColumn::dng_opcode_DeltaPerColumn (dng_host &host,
 		ThrowBadFormat ();
 		}
 		
-	fTable.Reset (host.Allocate (deltas * (uint32) sizeof (real32)));
+	fTable.Reset (host.Allocate (SafeUint32Mult (deltas,
+		static_cast<uint32> (sizeof (real32)))));
 	
 	real32 *table = fTable->Buffer_real32 ();
 	
@@ -1095,9 +1111,8 @@ dng_opcode_DeltaPerColumn::dng_opcode_DeltaPerColumn (dng_host &host,
 void dng_opcode_DeltaPerColumn::PutData (dng_stream &stream) const
 	{
 	
-	uint32 deltas = (fAreaSpec.Area ().W () +
-					 fAreaSpec.ColPitch () - 1) /
-					 fAreaSpec.ColPitch ();
+	uint32 deltas = SafeUint32DivideUp (fAreaSpec.Area ().W (),
+										fAreaSpec.ColPitch ());
 	
 	stream.Put_uint32 (dng_area_spec::kDataSize + 4 + deltas * 4);
 	
@@ -1252,9 +1267,8 @@ dng_opcode_ScalePerRow::dng_opcode_ScalePerRow (dng_host &host,
 	
 	fAreaSpec.GetData (stream);
 	
-	uint32 scales = (fAreaSpec.Area ().H () +
-					 fAreaSpec.RowPitch () - 1) /
-					 fAreaSpec.RowPitch ();
+	uint32 scales = SafeUint32DivideUp (fAreaSpec.Area ().H (),
+										fAreaSpec.RowPitch ());
 					 
 	if (scales != stream.Get_uint32 ())
 		{
@@ -1266,7 +1280,8 @@ dng_opcode_ScalePerRow::dng_opcode_ScalePerRow (dng_host &host,
 		ThrowBadFormat ();
 		}
 		
-	fTable.Reset (host.Allocate (scales * (uint32) sizeof (real32)));
+	fTable.Reset (host.Allocate (SafeUint32Mult (scales,
+		static_cast<uint32> (sizeof (real32)))));
 	
 	real32 *table = fTable->Buffer_real32 ();
 	
@@ -1303,9 +1318,8 @@ dng_opcode_ScalePerRow::dng_opcode_ScalePerRow (dng_host &host,
 void dng_opcode_ScalePerRow::PutData (dng_stream &stream) const
 	{
 	
-	uint32 scales = (fAreaSpec.Area ().H () +
-					 fAreaSpec.RowPitch () - 1) /
-					 fAreaSpec.RowPitch ();
+	uint32 scales = SafeUint32DivideUp (fAreaSpec.Area ().H (),
+										fAreaSpec.RowPitch ());
 	
 	stream.Put_uint32 (dng_area_spec::kDataSize + 4 + scales * 4);
 	
@@ -1430,9 +1444,8 @@ dng_opcode_ScalePerColumn::dng_opcode_ScalePerColumn (dng_host &host,
 	
 	fAreaSpec.GetData (stream);
 	
-	uint32 scales = (fAreaSpec.Area ().W () +
-					 fAreaSpec.ColPitch () - 1) /
-					 fAreaSpec.ColPitch ();
+	uint32 scales = SafeUint32DivideUp (fAreaSpec.Area ().W (),
+										fAreaSpec.ColPitch());
 					 
 	if (scales != stream.Get_uint32 ())
 		{
@@ -1444,7 +1457,8 @@ dng_opcode_ScalePerColumn::dng_opcode_ScalePerColumn (dng_host &host,
 		ThrowBadFormat ();
 		}
 		
-	fTable.Reset (host.Allocate (scales * (uint32) sizeof (real32)));
+	fTable.Reset (host.Allocate (SafeUint32Mult (scales,
+		static_cast<uint32> (sizeof (real32)))));
 	
 	real32 *table = fTable->Buffer_real32 ();
 	
@@ -1481,9 +1495,8 @@ dng_opcode_ScalePerColumn::dng_opcode_ScalePerColumn (dng_host &host,
 void dng_opcode_ScalePerColumn::PutData (dng_stream &stream) const
 	{
 	
-	uint32 scales = (fAreaSpec.Area ().W () +
-					 fAreaSpec.ColPitch () - 1) /
-					 fAreaSpec.ColPitch ();
+	uint32 scales = SafeUint32DivideUp (fAreaSpec.Area ().W (),
+										fAreaSpec.ColPitch ());
 	
 	stream.Put_uint32 (dng_area_spec::kDataSize + 4 + scales * 4);
 	

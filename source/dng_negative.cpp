@@ -31,11 +31,13 @@
 #include "dng_info.h"
 #include "dng_jpeg_image.h"
 #include "dng_linearization_info.h"
+#include "dng_memory.h"
 #include "dng_memory_stream.h"
 #include "dng_misc_opcodes.h"
 #include "dng_mosaic_info.h"
 #include "dng_preview.h"
 #include "dng_resample.h"
+#include "dng_safe_arithmetic.h"
 #include "dng_simple_image.h"
 #include "dng_tag_codes.h"
 #include "dng_tag_values.h"
@@ -55,7 +57,7 @@ dng_noise_profile::dng_noise_profile ()
 
 /*****************************************************************************/
 
-dng_noise_profile::dng_noise_profile (const std::vector<dng_noise_function> &functions)
+dng_noise_profile::dng_noise_profile (const dng_std_vector<dng_noise_function> &functions)
 
 	:	fNoiseFunctions (functions)
 
@@ -1159,8 +1161,8 @@ void dng_negative::ClearProfiles (bool clearBuiltinMatrixProfiles,
 	
 	// Delete any camera profiles in this negative that match the specified criteria.
 
-	std::vector<dng_camera_profile *>::iterator iter = fCameraProfile.begin ();
-	std::vector<dng_camera_profile *>::iterator next;
+	dng_std_vector<dng_camera_profile *>::iterator iter = fCameraProfile.begin ();
+	dng_std_vector<dng_camera_profile *>::iterator next;
 	
 	for (; iter != fCameraProfile.end (); iter = next)
 		{
@@ -1443,17 +1445,8 @@ dng_fingerprint dng_negative::FindImageDigest (dng_host &host,
 	
 	dng_md5_printer printer;
 	
-	dng_pixel_buffer buffer;
-	
-	buffer.fPlane  = 0;
-	buffer.fPlanes = image.Planes ();
-	
-	buffer.fRowStep   = image.Planes () * image.Width ();
-	buffer.fColStep   = image.Planes ();
-	buffer.fPlaneStep = 1;
-	
-	buffer.fPixelType = image.PixelType ();
-	buffer.fPixelSize = image.PixelSize ();
+	dng_pixel_buffer buffer (image.Bounds (), 0, image.Planes (),
+		 image.PixelType (), pcInterleaved, NULL);
 	
 	// Sometimes we expand 8-bit data to 16-bit data while reading or
 	// writing, so always compute the digest of 8-bit data as 16-bits.
@@ -1466,7 +1459,15 @@ dng_fingerprint dng_negative::FindImageDigest (dng_host &host,
 	
 	const uint32 kBufferRows = 16;
 	
-	uint32 bufferBytes = kBufferRows * buffer.fRowStep * buffer.fPixelSize;
+	uint32 bufferBytes = 0;
+	
+	if (!SafeUint32Mult (kBufferRows, buffer.fRowStep, &bufferBytes) ||
+		 !SafeUint32Mult (bufferBytes, buffer.fPixelSize, &bufferBytes))
+		{
+		
+		ThrowMemoryFull("Arithmetic overflow computing buffer size.");
+		
+		}
 	
 	AutoPtr<dng_memory_block> bufferData (host.Allocate (bufferBytes));
 	
@@ -1610,7 +1611,7 @@ class dng_find_new_raw_image_digest_task : public dng_area_task
 			,	fTilesAcross (0)
 			,	fTilesDown   (0)
 			,	fTileCount   (0)
-			,	fTileHash    (NULL)
+			,	fTileHash    ()
 			
 			{
 			
@@ -1639,12 +1640,11 @@ class dng_find_new_raw_image_digest_task : public dng_area_task
 			
 			fTileCount = fTilesAcross * fTilesDown;
 						 
-			fTileHash.Reset (new dng_fingerprint [fTileCount]);
+			fTileHash.Reset (fTileCount);
 			
-			uint32 bufferSize = fImage.Planes () *
-								fPixelSize *
-								tileSize.h *
-								tileSize.v;
+			const uint32 bufferSize =
+				ComputeBufferSize(fPixelType, tileSize, fImage.Planes(),
+								  padNone);
 								
 			for (uint32 index = 0; index < threadCount; index++)
 				{
@@ -1669,21 +1669,9 @@ class dng_find_new_raw_image_digest_task : public dng_area_task
 			
 			uint32 tileIndex = rowIndex * fTilesAcross + colIndex;
 			
-			dng_pixel_buffer buffer;
-			
-			buffer.fArea = tile;
-			
-			buffer.fPlane  = 0;
-			buffer.fPlanes = fImage.Planes ();
-			
-			buffer.fRowStep   = tile.W ();
-			buffer.fColStep   = 1;
-			buffer.fPlaneStep = tile.W () * tile.H ();
-			
-			buffer.fPixelType = fPixelType;
-			buffer.fPixelSize = fPixelSize;
-	
-			buffer.fData = fBufferData [threadIndex]->Buffer ();
+			dng_pixel_buffer buffer (tile, 0, fImage.Planes (),
+				 fPixelType, pcPlanar,
+				 fBufferData [threadIndex]->Buffer ());
 			
 			fImage.Get (buffer);
 			
@@ -2405,7 +2393,14 @@ void dng_negative::SetRowBlacks (const real64 *blacks,
 		
 		dng_linearization_info &info = *fLinearizationInfo.Get ();
 		
-		uint32 byteCount = count * (uint32) sizeof (real64);
+		uint32 byteCount = 0;
+		
+		if (!SafeUint32Mult (count, (uint32) sizeof (real64), &byteCount))
+			{
+			
+			ThrowMemoryFull("Arithmetic overflow computing byte count.");
+			
+			}
 									    
 		info.fBlackDeltaV.Reset (Allocator ().Allocate (byteCount));
 		
@@ -2441,7 +2436,14 @@ void dng_negative::SetColumnBlacks (const real64 *blacks,
 		
 		dng_linearization_info &info = *fLinearizationInfo.Get ();
 		
-		uint32 byteCount = count * (uint32) sizeof (real64);
+		uint32 byteCount = 0;
+		
+		if (!SafeUint32Mult (count, (uint32) sizeof (real64), &byteCount))
+			{
+			
+			ThrowMemoryFull("Arithmetic overflow computing byte count.");
+			
+			}
 									    
 		info.fBlackDeltaH.Reset (Allocator ().Allocate (byteCount));
 		

@@ -21,7 +21,11 @@
 #ifndef __dng_auto_ptr__
 #define __dng_auto_ptr__
 
+#include "dng_memory.h"
+
+#include <memory>
 #include <stddef.h>
+#include <stdlib.h>
 
 /*****************************************************************************/
 
@@ -174,66 +178,69 @@ void AutoPtr<T>::Alloc ()
 
 /*****************************************************************************/
 
-/// \brief A class intended to be used similarly to AutoPtr but for arrays.
+/// \brief A class that provides a variable-length array that automatically
+/// deletes the underlying memory on scope exit.
+///
+/// T is not required to be movable. The class is implemented using
+/// dng_std_vector but purposely does not use any member functions that require
+/// T to be movable.
 
 template<typename T>
 class AutoArray
 	{
 
 	public:
+		/// Construct an AutoArray that refers to a null pointer.
 
-		/// Construct an AutoArray which owns the argument pointer.
-		/// \param p array pointer which constructed AutoArray takes ownership of. p
-		/// will be deleted on destruction or Reset unless Release is called first.
+		AutoArray () { }
 
-		explicit AutoArray (T *p_ = 0) : p (p_) { }
+		/// Construct an AutoArray containing 'count' elements, which are
+		/// default-constructed. If an out-of-memory condition occurs, a
+		/// dng_exception with error code dng_error_memory is thrown.
 
-		/// Reset is called on destruction.
-
-		~AutoArray ()
+		explicit AutoArray (size_t count)
+			: vector_(new dng_std_vector<T>(count))
 			{
-			delete [] p;
-			p = 0;
 			}
 
-		/// Return the owned array pointer of this AutoArray, NULL if none. The
-		/// AutoArray gives up ownership and takes NULL as its value.
+		/// Changes the size of the AutoArray to 'count' elements. The new
+		/// elements are default-constructed. The previously existing elements
+		/// of the array are destroyed. If an out-of-memory condition occurs, a
+		/// dng_exception with error code dng_error_memory is thrown.
 
-		T *Release ()
+		void Reset (size_t count)
 			{
-			T *p_ = p;
-			p = 0;
-			return p_;
+			vector_.reset(new dng_std_vector<T>(count));
 			}
 
-		/// If a pointer is owned, it is deleted. Ownership is taken of passed in
-		/// pointer.
-		/// \param p array pointer which constructed AutoArray takes ownership of. p
-		/// will be deleted on destruction or Reset unless Release is called first.
+		/// Allows indexing into the AutoArray. The index 'i' must be
+		/// non-negative and smaller than size of the array (the value that was
+		/// passed to the constructor or to Reset()).
 
-		void Reset (T *p_ = 0)
+		T &operator[] (ptrdiff_t i)
 			{
-			if (p != p_)
-				{
-				delete [] p;
-				p = p_;
-				}
+			return (*vector_) [i];
+			}
+		const T &operator[] (ptrdiff_t i) const
+			{
+			return (*vector_) [i];
 			}
 
-		/// Allows indexing into the AutoArray. It is an error to call this if the
-		/// AutoArray has NULL as its value.
+		/// Return a pointer to the beginning of the array.
 
-		T &operator[] (ptrdiff_t i) const
+		T *Get ()
 			{
-			return p [i];
+			if (vector_)
+				return vector_->data();
+			else
+				return nullptr;
 			}
-
-		/// Return the owned pointer of this AutoArray, NULL if none. No change in
-		/// ownership or other effects occur.
-
-		T *Get () const
+		const T *Get () const
 			{
-			return p;
+			if (vector_)
+				return vector_->data();
+			else
+				return nullptr;
 			}
 
 	private:
@@ -246,9 +253,7 @@ class AutoArray
 
 	private:
 
-		// Owned pointer or NULL.
-
-		T *p;
+		std::unique_ptr<dng_std_vector<T> > vector_;
 
 	};
 

@@ -23,9 +23,8 @@
 /*****************************************************************************/
 
 #include "dng_classes.h"
+#include "dng_memory.h"
 #include "dng_point.h"
-
-#include <vector>
 
 /*****************************************************************************/
 
@@ -34,7 +33,7 @@ class dng_tone_curve
 	
 	public:
 		
-		std::vector<dng_point_real64> fCoord;
+		dng_std_vector<dng_point_real64> fCoord;
 		
 	public:
 

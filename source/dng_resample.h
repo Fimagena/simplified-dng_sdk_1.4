@@ -151,6 +151,13 @@ class dng_resample_weights
 			
 			DNG_ASSERT (fWeights32->Buffer (), "Weights32 is NULL");
 			
+			if (fract >= kResampleSubsampleCount)
+				{
+				
+				ThrowBadFormat ();
+				
+				}
+			
 			return fWeights32->Buffer_real32 () + fract * fWeightStep;
 			
 			}
@@ -159,6 +166,13 @@ class dng_resample_weights
 			{
 			
 			DNG_ASSERT (fWeights16->Buffer (), "Weights16 is NULL");
+			
+			if (fract >= kResampleSubsampleCount)
+				{
+				
+				ThrowBadFormat ();
+				
+				}
 			
 			return fWeights16->Buffer_int16 () + fract * fWeightStep;
 			
@@ -226,6 +240,15 @@ class dng_resample_weights_2d
 			
 			DNG_ASSERT (fWeights32->Buffer (), "Weights32 is NULL");
 			
+			if (fract.v < 0 || fract.h < 0
+				 || fract.v >= static_cast<int32>(kResampleSubsampleCount2D)
+				 || fract.h >= static_cast<int32>(kResampleSubsampleCount2D))
+				{
+				
+				ThrowBadFormat ();
+				
+				}
+			
 			const uint32 offset = fract.v * fRowStep + fract.h * fColStep;
 
 			return fWeights32->Buffer_real32 () + offset;
@@ -236,6 +259,15 @@ class dng_resample_weights_2d
 			{
 			
 			DNG_ASSERT (fWeights16->Buffer (), "Weights16 is NULL");
+			
+			if (fract.v < 0 || fract.h < 0
+				 || fract.v >= static_cast<int32>(kResampleSubsampleCount2D)
+				 || fract.h >= static_cast<int32>(kResampleSubsampleCount2D))
+				{
+				
+				ThrowBadFormat ();
+				
+				}
 			
 			const uint32 offset = fract.v * fRowStep + fract.h * fColStep;
 			

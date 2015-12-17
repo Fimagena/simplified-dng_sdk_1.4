@@ -18,6 +18,7 @@
 #include "dng_memory.h"
 #include "dng_orientation.h"
 #include "dng_tag_types.h"
+#include "dng_tag_values.h"
 
 /*****************************************************************************/
 
@@ -31,30 +32,16 @@ dng_simple_image::dng_simple_image (const dng_rect &bounds,
 				   pixelType)
 				   
 	,	fMemory    ()
-	,	fBuffer    ()
 	,	fAllocator (allocator)
 				   
 	{
 	
-	uint32 pixelSize = TagTypeSize (pixelType);
-	
-	uint32 bytes = bounds.H () * bounds.W () * planes * pixelSize;
+	uint32 bytes =
+		ComputeBufferSize (pixelType, bounds.Size (), planes, pad16Bytes);
 				   
 	fMemory.Reset (allocator.Allocate (bytes));
 	
-	fBuffer.fArea = bounds;
-	
-	fBuffer.fPlane  = 0;
-	fBuffer.fPlanes = planes;
-	
-	fBuffer.fRowStep   = planes * bounds.W ();
-	fBuffer.fColStep   = planes;
-	fBuffer.fPlaneStep = 1;
-	
-	fBuffer.fPixelType = pixelType;
-	fBuffer.fPixelSize = pixelSize;
-	
-	fBuffer.fData = fMemory->Buffer ();
+	fBuffer = dng_pixel_buffer (bounds, 0, planes, pixelType, pcInterleaved, fMemory->Buffer ());
 	
 	}
 

@@ -21,6 +21,7 @@
 #include "dng_classes.h"
 #include "dng_flags.h"
 #include "dng_memory.h"
+#include "dng_safe_arithmetic.h"
 #include "dng_types.h"
 
 /*****************************************************************************/
@@ -170,43 +171,6 @@ inline uint16 Pin_uint16 (int32 x)
 
 /*****************************************************************************/
 
-inline uint32 RoundUp2 (uint32 x)
-	{
-	
-	return (x + 1) & (uint32) ~1;
-	
-	}
-
-inline uint32 RoundUp4 (uint32 x)
-	{
-	
-	return (x + 3) & (uint32) ~3;
-	
-	}
-
-inline uint32 RoundUp8 (uint32 x)
-	{
-	
-	return (x + 7) & (uint32) ~7;
-	
-	}
-
-inline uint32 RoundUp16 (uint32 x)
-	{
-	
-	return (x + 15) & (uint32) ~15;
-	
-	}
-
-inline uint32 RoundUp4096 (uint32 x)
-	{
-	
-	return (x + 4095) & (uint32) ~4095;
-	
-	}
-
-/******************************************************************************/
-
 inline uint32 RoundDown2 (uint32 x)
 	{
 	
@@ -237,30 +201,48 @@ inline uint32 RoundDown16 (uint32 x)
 
 /******************************************************************************/
 
-inline uint32 RoundUpForPixelSize (uint32 x, uint32 pixelSize)
+inline bool RoundUpForPixelSize (uint32 x, uint32 pixelSize, uint32 *result)
 	{
 	
+	uint32 multiple;
 	switch (pixelSize)
 		{
 		
 		case 1:
-			return RoundUp16 (x);
-			
 		case 2:
-			return RoundUp8 (x);
-			
 		case 4:
-			return RoundUp4 (x);
-			
 		case 8:
-			return RoundUp2 (x);
+			multiple = 16 / pixelSize;
+			break;
 			
 		default:
-			return RoundUp16 (x);
+			multiple = 16;
+			break;
 					
 		}
 	
+	return RoundUpUint32ToMultiple(x, multiple, result);
+	
 	}
+
+/******************************************************************************/
+
+// Type of padding to be performed by ComputeBufferSize().
+enum PaddingType
+	{
+	// Don't perform any padding.
+	padNone,
+	// Pad each scanline to an integer multiple of 16 bytes (in the same way
+	// that RoundUpForPixelSize() does).
+	pad16Bytes
+	};
+
+// Returns the number of bytes required for an image tile with the given pixel
+// type, tile size, number of image planes, and desired padding. Throws a
+// dng_exception with dng_error_memory error code if one of the components of
+// tileSize is negative or if arithmetic overflow occurs during the computation.
+uint32 ComputeBufferSize(uint32 pixelType, const dng_point &tileSize,
+						 uint32 numPlanes, PaddingType paddingType);
 
 /******************************************************************************/
 

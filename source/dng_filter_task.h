@@ -52,6 +52,7 @@ class dng_filter_task: public dng_area_task
 		uint32 fDstPixelType;
 		
 		dng_point fSrcRepeat;
+		dng_point fSrcTileSize;
 		
 		AutoPtr<dng_memory_block> fSrcBuffer [kMaxMPThreads];
 		AutoPtr<dng_memory_block> fDstBuffer [kMaxMPThreads];

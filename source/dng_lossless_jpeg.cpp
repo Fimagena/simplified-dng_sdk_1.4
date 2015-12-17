@@ -249,6 +249,11 @@ static void FixHuffTbl (HuffmanTable *htbl)
             
      		int32 ul = (size < 8 ? ll | bitMask [24 + size]
      						     : ll);
+            if (ul >= static_cast<int32>(sizeof(htbl->numbits) / sizeof(htbl->numbits[0])) ||
+                ul >= static_cast<int32>(sizeof(htbl->value) / sizeof(htbl->value[0])))
+                {
+                ThrowBadFormat ();
+                }
             	
             for (i = ll; i <= ul; i++)
             	{
@@ -751,8 +756,10 @@ void dng_lossless_decoder::GetSof (int32 /*code*/)
     	
     // Allocate per component info.
     
-    compInfoBuffer.Allocate (info.numComponents *
-    					     (uint32) sizeof (JpegComponentInfo));
+    // We can cast info.numComponents to a uint32 because the check above
+    // guarantees that it cannot be negative.
+    compInfoBuffer.Allocate (static_cast<uint32> (info.numComponents),
+                             sizeof (JpegComponentInfo));
     
     info.compInfo = (JpegComponentInfo *) compInfoBuffer.Buffer ();
     							 
@@ -1200,7 +1207,7 @@ void dng_lossless_decoder::DecoderStructInit ()
 	
     // Prepare array describing MCU composition.
 
-	if (info.compsInScan > 4)
+	if (info.compsInScan < 0 || info.compsInScan > 4)
 		{
     	ThrowBadFormat ();
 		}
@@ -1213,16 +1220,18 @@ void dng_lossless_decoder::DecoderStructInit ()
 	// Initialize mucROW1 and mcuROW2 which buffer two rows of
     // pixels for predictor calculation.
     
+	// This multiplication cannot overflow because info.compsInScan is
+	// guaranteed to be between 0 and 4 inclusive (see checks above).
 	int32 mcuSize = info.compsInScan * (uint32) sizeof (ComponentType);
 	
-	mcuBuffer1.Allocate (info.imageWidth * (uint32) sizeof (MCU));
-	mcuBuffer2.Allocate (info.imageWidth * (uint32) sizeof (MCU));
+	mcuBuffer1.Allocate (info.imageWidth, sizeof (MCU));
+	mcuBuffer2.Allocate (info.imageWidth, sizeof (MCU));
 	
 	mcuROW1 = (MCU *) mcuBuffer1.Buffer ();
 	mcuROW2 = (MCU *) mcuBuffer2.Buffer ();
 	
-	mcuBuffer3.Allocate (info.imageWidth * mcuSize);
-	mcuBuffer4.Allocate (info.imageWidth * mcuSize);
+	mcuBuffer3.Allocate (info.imageWidth, mcuSize);
+	mcuBuffer4.Allocate (info.imageWidth, mcuSize);
  	
  	mcuROW1 [0] = (ComponentType *) mcuBuffer3.Buffer ();
  	mcuROW2 [0] = (ComponentType *) mcuBuffer4.Buffer ();
@@ -1560,6 +1569,11 @@ inline void dng_lossless_decoder::flush_bits (int32 nbits)
 
 inline int32 dng_lossless_decoder::get_bits (int32 nbits)
 	{
+	
+	if (nbits > 16)
+		{
+		ThrowBadFormat ();
+		}
 	
 	if (bitsLeft < nbits)
 		FillBitBuffer (nbits);

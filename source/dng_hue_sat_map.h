@@ -23,7 +23,9 @@
 /*****************************************************************************/
 
 #include "dng_classes.h"
+#include "dng_exceptions.h"
 #include "dng_ref_counted_block.h"
+#include "dng_safe_arithmetic.h"
 #include "dng_types.h"
 
 /*****************************************************************************/
@@ -183,9 +185,14 @@ class dng_hue_sat_map
 
 		uint32 DeltasCount () const
 			{
-			return fValDivisions *
-				   fHueDivisions *
-				   fSatDivisions;
+			uint32 deltaCount;
+			if (!SafeUint32Mult(fValDivisions, fHueDivisions, &deltaCount) ||
+	    			   !SafeUint32Mult(deltaCount, fSatDivisions, &deltaCount))
+				{
+				ThrowMemoryFull("Arithmetic overflow computing delta count");
+				}
+	
+			return deltaCount;
 			}
 		
 		/// Direct read/write access to table entries. The entries are stored in

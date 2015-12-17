@@ -26,6 +26,7 @@
 #include "dng_image.h"
 #include "dng_lens_correction.h"
 #include "dng_negative.h"
+#include "dng_safe_arithmetic.h"
 #include "dng_sdk_limits.h"
 #include "dng_tag_values.h"
 
@@ -1310,10 +1311,17 @@ void dng_filter_warp::ProcessArea (uint32 /* threadIndex */,
 	const int32 srcRowStep = (int32) srcBuffer.RowStep ();
 
 	const int32 hMin = srcArea.l;
-	const int32 hMax = srcArea.r - wCount - 1;
+	const int32 hMax = SafeInt32Sub (SafeInt32Sub (srcArea.r, wCount), 1);
 
 	const int32 vMin = srcArea.t;
-	const int32 vMax = srcArea.b - wCount - 1;
+	const int32 vMax = SafeInt32Sub (SafeInt32Sub (srcArea.b, wCount), 1);
+
+	if (hMax < hMin || vMax < vMin)
+		{
+		
+		ThrowBadFormat ("Empty source area in dng_filter_warp.");
+		
+		}
 
 	// Warp each plane.
 
@@ -1886,7 +1894,7 @@ dng_vignette_radial_params::dng_vignette_radial_params ()
 
 /*****************************************************************************/
 
-dng_vignette_radial_params::dng_vignette_radial_params (const std::vector<real64> &params,
+dng_vignette_radial_params::dng_vignette_radial_params (const dng_std_vector<real64> &params,
 														const dng_point_real64 &center)
 
 	:	fParams (params)
@@ -1998,9 +2006,9 @@ class dng_vignette_radial_function: public dng_1d_function
 
 			real64 sum = 0.0;
 
-			const std::vector<real64> &v = fParams.fParams;
+			const dng_std_vector<real64> &v = fParams.fParams;
 
-			for (std::vector<real64>::const_reverse_iterator i = v.rbegin (); i != v.rend (); i++)
+			for (dng_std_vector<real64>::const_reverse_iterator i = v.rbegin (); i != v.rend (); i++)
 				{
 				sum = x * ((*i) + sum);
 				}
@@ -2084,7 +2092,7 @@ dng_opcode_FixVignetteRadial::dng_opcode_FixVignetteRadial (dng_stream &stream)
 
 	// Read vignette coefficients.
 
-	fParams.fParams = std::vector<real64> (dng_vignette_radial_params::kNumTerms);
+	fParams.fParams = dng_std_vector<real64> (dng_vignette_radial_params::kNumTerms);
 
 	for (uint32 i = 0; i < dng_vignette_radial_params::kNumTerms; i++)
 		{
@@ -2285,12 +2293,8 @@ void dng_opcode_FixVignetteRadial::Prepare (dng_negative &negative,
 		{
 
 		const uint32 pixelType = ttShort;
-		const uint32 pixelSize = TagTypeSize (pixelType);
-								   
-		const uint32 bufferSize = tileSize.v *
-								  RoundUpForPixelSize (tileSize.h, pixelSize) *
-								  pixelSize *
-								  imagePlanes;
+		const uint32 bufferSize = ComputeBufferSize(pixelType, tileSize,
+													imagePlanes, pad16Bytes);
 								   
 		for (uint32 threadIndex = 0; threadIndex < threadCount; threadIndex++)
 			{
@@ -2314,22 +2318,9 @@ void dng_opcode_FixVignetteRadial::ProcessArea (dng_negative & /* negative */,
 
 	// Setup mask pixel buffer.
 			
-	dng_pixel_buffer maskPixelBuffer;
-			
-	maskPixelBuffer.fArea = dstArea;
-			
-	maskPixelBuffer.fPlane	= 0;
-	maskPixelBuffer.fPlanes = fImagePlanes;
-			
-	maskPixelBuffer.fPixelType = ttShort;
-	maskPixelBuffer.fPixelSize = TagTypeSize (maskPixelBuffer.fPixelType);
-			
-	maskPixelBuffer.fPlaneStep = RoundUpForPixelSize (dstArea.W (),
-													  maskPixelBuffer.fPixelSize);
-			
-	maskPixelBuffer.fRowStep = maskPixelBuffer.fPlaneStep * maskPixelBuffer.fPlanes;
-					
-	maskPixelBuffer.fData = fMaskBuffers [threadIndex]->Buffer ();
+	dng_pixel_buffer maskPixelBuffer(dstArea, 0, fImagePlanes, ttShort,
+									 pcRowInterleavedAlign16,
+									 fMaskBuffers [threadIndex]->Buffer ());
 
 	// Compute mask.
 

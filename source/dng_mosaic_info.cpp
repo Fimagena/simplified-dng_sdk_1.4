@@ -1820,18 +1820,12 @@ void dng_mosaic_info::InterpolateGeneric (dng_host &host,
 	
 	// Allocate source buffer.
 	
-	dng_pixel_buffer srcBuffer;
+	dng_pixel_buffer srcBuffer (dng_rect (srcTileSize), srcPlane, 1,
+		 srcImage.PixelType (), pcInterleaved, NULL);
 	
-	srcBuffer.fPlane = srcPlane;
-	
-	srcBuffer.fRowStep = srcTileSize.h;
-
-	srcBuffer.fPixelType = srcImage.PixelType ();
-	srcBuffer.fPixelSize = srcImage.PixelSize ();
-	
-	uint32 srcBufferSize = srcBuffer.fPixelSize *
-						   srcBuffer.fRowStep *
-						   srcTileSize.v;
+	uint32 srcBufferSize = ComputeBufferSize (srcBuffer.fPixelType,
+											  srcTileSize, srcBuffer.fPlanes,
+											  padNone);
 	
 	AutoPtr<dng_memory_block> srcData (host.Allocate (srcBufferSize));
 	
@@ -1839,19 +1833,12 @@ void dng_mosaic_info::InterpolateGeneric (dng_host &host,
 	
 	// Allocate destination buffer.
 	
-	dng_pixel_buffer dstBuffer;
+	dng_pixel_buffer dstBuffer (dng_rect (dstTileSize), 0, fColorPlanes,
+		 dstImage.PixelType (), pcRowInterleaved, NULL);
 	
-	dstBuffer.fPlanes = fColorPlanes;
-	
-	dstBuffer.fRowStep   = dstTileSize.h * fColorPlanes;
-	dstBuffer.fPlaneStep = dstTileSize.h;
-	
-	dstBuffer.fPixelType = dstImage.PixelType ();
-	dstBuffer.fPixelSize = dstImage.PixelSize ();
-	
-	uint32 dstBufferSize = dstBuffer.fPixelSize *
-						   dstBuffer.fRowStep *
-						   dstTileSize.v;
+	uint32 dstBufferSize = ComputeBufferSize (dstBuffer.fPixelType,
+											  dstTileSize, dstBuffer.fPlanes,
+											  padNone);
 	
 	AutoPtr<dng_memory_block> dstData (host.Allocate (dstBufferSize));
 	

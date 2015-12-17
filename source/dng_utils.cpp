@@ -18,11 +18,14 @@
 #include "dng_area_task.h"
 #include "dng_assertions.h"
 #include "dng_bottlenecks.h"
+#include "dng_exceptions.h"
 #include "dng_host.h"
 #include "dng_image.h"
 #include "dng_flags.h"
 #include "dng_point.h"
 #include "dng_rect.h"
+#include "dng_safe_arithmetic.h"
+#include "dng_tag_types.h"
 #include "dng_tile_iterator.h"
 
 #if qMacOS
@@ -156,6 +159,44 @@ void dng_show_message_f (const char *fmt, ... )
 /*****************************************************************************/
 
 #endif
+
+/*****************************************************************************/
+
+uint32 ComputeBufferSize(uint32 pixelType, const dng_point &tileSize,
+						 uint32 numPlanes, PaddingType paddingType)
+
+{
+	// Convert tile size to uint32.
+	if (tileSize.h < 0 || tileSize.v < 0)
+		{
+		ThrowMemoryFull("Negative tile size");
+		}
+	const uint32 tileSizeH = static_cast<uint32>(tileSize.h);
+	const uint32 tileSizeV = static_cast<uint32>(tileSize.v);
+	
+	const uint32 pixelSize = TagTypeSize(pixelType);
+	
+	// Add padding to width if necessary.
+	uint32 paddedWidth = tileSizeH;
+	if (paddingType == pad16Bytes)
+		{
+		if (!RoundUpForPixelSize(paddedWidth, pixelSize, &paddedWidth))
+			{
+			  ThrowMemoryFull("Arithmetic overflow computing buffer size");
+			}
+		}
+	
+	// Compute buffer size.
+	uint32 bufferSize;
+	if (!SafeUint32Mult(paddedWidth, tileSizeV, &bufferSize) ||
+		!SafeUint32Mult(bufferSize, pixelSize, &bufferSize) ||
+		!SafeUint32Mult(bufferSize, numPlanes, &bufferSize))
+		{
+		ThrowMemoryFull("Arithmetic overflow computing buffer size");
+		}
+	
+	return bufferSize;
+}
 
 /*****************************************************************************/
 

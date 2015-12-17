@@ -369,8 +369,16 @@ bool dng_ifd::ParseTag (dng_stream &stream,
 				
 				uint32 x = stream.TagValue_uint32 (tagType);
 				
+				const uint32 maxBitsPerSample = 32;
+				
 				if (j < kMaxSamplesPerPixel)
 					{
+					
+					if (x > maxBitsPerSample)
+						{
+						ThrowBadFormat ("BitsPerSample out of bounds.");
+						}
+						
 					fBitsPerSample [j] = x;
 					}
 					

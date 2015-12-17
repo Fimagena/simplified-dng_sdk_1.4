@@ -28,11 +28,13 @@
 #include "dng_image.h"
 #include "dng_jpeg_image.h"
 #include "dng_lossless_jpeg.h"
+#include "dng_memory.h"
 #include "dng_memory_stream.h"
 #include "dng_negative.h"
 #include "dng_pixel_buffer.h"
 #include "dng_preview.h"
 #include "dng_read_image.h"
+#include "dng_safe_arithmetic.h"
 #include "dng_stream.h"
 #include "dng_string_list.h"
 #include "dng_tag_codes.h"
@@ -43,8 +45,7 @@
 #include "zlib.h"
 
 #if qDNGUseLibJPEG
-#include "jpeglib.h"
-#include "jerror.h"
+#include "dng_jpeglib.h"
 #endif
 	
 /*****************************************************************************/
@@ -727,7 +728,7 @@ dng_basic_tag_set::dng_basic_tag_set (dng_tiff_directory &directory,
 	,	fTileLength (fStrips ? tcRowsPerStrip : tcTileLength, 
 					 info.fTileLength)
 	
-	,	fTileInfoBuffer (info.TilesPerImage () * 8)
+	,	fTileInfoBuffer (info.TilesPerImage (), 8)
 	
 	,	fTileOffsetData (fTileInfoBuffer.Buffer_uint32 ())
 	
@@ -1860,7 +1861,7 @@ range_tag_set::range_tag_set (dng_tiff_directory &directory,
 			
 			uint32 count = rangeInfo->ColumnBlackCount ();
 		
-			fBlackLevelDeltaHData.Allocate (count * (uint32) sizeof (dng_srational));
+			fBlackLevelDeltaHData.Allocate (count, sizeof (dng_srational));
 												 
 			dng_srational *blacks = (dng_srational *) fBlackLevelDeltaHData.Buffer ();
 			
@@ -1885,7 +1886,7 @@ range_tag_set::range_tag_set (dng_tiff_directory &directory,
 			
 			uint32 count = rangeInfo->RowBlackCount ();
 		
-			fBlackLevelDeltaVData.Allocate (count * (uint32) sizeof (dng_srational));
+			fBlackLevelDeltaVData.Allocate (count, sizeof (dng_srational));
 												 
 			dng_srational *blacks = (dng_srational *) fBlackLevelDeltaVData.Buffer ();
 			
@@ -2547,7 +2548,8 @@ profile_tag_set::profile_tag_set (dng_tiff_directory &directory,
 			
 			uint32 toneCurvePoints = (uint32) (profile.ToneCurve ().fCoord.size ());
 
-			fToneCurveBuffer.Allocate (toneCurvePoints * 2 * (uint32) sizeof (real32));
+			fToneCurveBuffer.Allocate (SafeUint32Mult(toneCurvePoints, 2),
+									   sizeof (real32));
 
 			real32 *points = fToneCurveBuffer.Buffer_real32 ();
 			
@@ -2677,7 +2679,7 @@ uint32 dng_image_writer::CompressedBufferSize (const dng_ifd &ifd,
 			
 			// Add lots of slop for LZW to expand data.
 				
-			return uncompressedSize * 2 + 1024;
+			return SafeUint32Add (SafeUint32Mult (uncompressedSize, 2), 1024);
 			
 			}
 			
@@ -2686,7 +2688,8 @@ uint32 dng_image_writer::CompressedBufferSize (const dng_ifd &ifd,
 		
 			// ZLib says maximum is source size + 0.1% + 12 bytes.
 			
-			return uncompressedSize + (uncompressedSize >> 8) + 64;
+			return SafeUint32Add (SafeUint32Add (uncompressedSize,
+												 uncompressedSize >> 8), 64);
 			
 			}
 			
@@ -2699,7 +2702,7 @@ uint32 dng_image_writer::CompressedBufferSize (const dng_ifd &ifd,
 			if (ifd.fBitsPerSample [0] <= 8)
 				{
 				
-				return uncompressedSize * 2;
+				return SafeUint32Mult (uncompressedSize, 2);
 				
 				}
 				
@@ -3080,7 +3083,13 @@ void dng_image_writer::EncodePredictor (dng_host &host,
 				xFactor = 4;
 				}
 			
-			uint32 tempBufferSize = buffer.fRowStep * buffer.fPixelSize;
+			if (buffer.fRowStep < 0)
+				{
+				ThrowProgramError ("Row step may not be negative");
+				}
+			uint32 tempBufferSize = SafeUint32Mult (
+				static_cast<uint32>(buffer.fRowStep),
+				buffer.fPixelSize);
 			
 			if (!tempBuffer.Get () || tempBuffer->LogicalSize () < tempBufferSize)
 				{
@@ -3325,7 +3334,7 @@ dng_lzw_compressor::dng_lzw_compressor ()
 	
 	{
 	
-	fBuffer.Allocate (kTableSize * sizeof (LZWCompressorNode));
+	fBuffer.Allocate (kTableSize, sizeof (LZWCompressorNode));
 	
 	fTable = (LZWCompressorNode *) fBuffer.Buffer ();
 	
@@ -4085,16 +4094,8 @@ void dng_image_writer::EncodeJPEGPreview (dng_host &host,
 		
 		// Write the scanlines.
 		
-		dng_pixel_buffer buffer;
-		
-		buffer.fArea   = image.Bounds ();
-		buffer.fPlanes = image.Planes ();
-		
-		buffer.fColStep = buffer.fPlanes;
-		buffer.fRowStep = buffer.fColStep * buffer.fArea.W ();
-		
-		buffer.fPixelType = ttByte;
-		buffer.fPixelSize = 1;
+		dng_pixel_buffer buffer (image.Bounds (), 0, image.Planes (), ttByte,
+			 pcInterleaved, NULL);
 		
 		AutoPtr<dng_memory_block> bufferData (host.Allocate (buffer.fRowStep));
 		
@@ -4166,21 +4167,8 @@ void dng_image_writer::WriteTile (dng_host &host,
 	
 	// Create pixel buffer to hold uncompressed tile.
 	
-	dng_pixel_buffer buffer;
-	
-	buffer.fArea = tileArea;
-	
-	buffer.fPlane  = 0;
-	buffer.fPlanes = ifd.fSamplesPerPixel;
-	
-	buffer.fRowStep   = buffer.fPlanes * tileArea.W ();
-	buffer.fColStep   = buffer.fPlanes;
-	buffer.fPlaneStep = 1;
-	
-	buffer.fPixelType = image.PixelType ();
-	buffer.fPixelSize = image.PixelSize ();
-	
-	buffer.fData = uncompressedBuffer->Buffer ();
+	dng_pixel_buffer buffer (tileArea, 0, ifd.fSamplesPerPixel,
+		 image.PixelType(), pcInterleaved, uncompressedBuffer->Buffer());
 	
 	// Get the uncompressed data.
 	
@@ -4602,9 +4590,10 @@ void dng_image_writer::WriteImage (dng_host &host,
 	
 	uint32 bytesPerSample = TagTypeSize (image.PixelType ());
 	
-	uint32 bytesPerPixel = ifd.fSamplesPerPixel * bytesPerSample;
+	uint32 bytesPerPixel = SafeUint32Mult (ifd.fSamplesPerPixel,
+										   bytesPerSample);
 	
-	uint32 tileRowBytes = ifd.fTileWidth * bytesPerPixel;
+	uint32 tileRowBytes = SafeUint32Mult (ifd.fTileWidth, bytesPerPixel);
 	
 	// If we can compute the number of bytes needed to store the
 	// data, we can split the write for each tile into sub-tiles.
@@ -4627,7 +4616,7 @@ void dng_image_writer::WriteImage (dng_host &host,
 		
 	// Find size of uncompressed buffer.
 	
-	uint32 uncompressedSize = subTileLength * tileRowBytes;
+	uint32 uncompressedSize = SafeUint32Mult(subTileLength, tileRowBytes);
 	
 	// Find size of compressed buffer, if required.
 	
@@ -6289,7 +6278,7 @@ void dng_image_writer::WriteDNG (dng_host &host,
 	
 	AutoPtr<color_tag_set> colorSet;
 	
-	std::vector<uint32> extraProfileIndex;
+	dng_std_vector<uint32> extraProfileIndex;
 	
 	if (!negative.IsMonochrome ())
 		{
@@ -6331,7 +6320,7 @@ void dng_image_writer::WriteDNG (dng_host &host,
 	
 	uint32 extraProfileCount = (uint32) extraProfileIndex.size ();
 	
-	dng_memory_data extraProfileOffsets (extraProfileCount * (uint32) sizeof (uint32));
+	dng_memory_data extraProfileOffsets (extraProfileCount, sizeof (uint32));
 	
 	tag_uint32_ptr extraProfileTag (tcExtraCameraProfiles,
 									extraProfileOffsets.Buffer_uint32 (),

@@ -18,8 +18,10 @@
 
 /*****************************************************************************/
 
-#include "dng_types.h"
+#include "dng_exceptions.h"
 #include "dng_point.h"
+#include "dng_safe_arithmetic.h"
+#include "dng_types.h"
 #include "dng_utils.h"
 
 /*****************************************************************************/
@@ -44,20 +46,34 @@ class dng_rect
 			{
 			}
 			
+		// Constructs a dng_rect from the top-left and bottom-right corner.
+		// Throws an exception if the resulting height or width are too large to
+		// be represented as an int32. The intent of this is to protect code
+		// that may be computing the height or width directly from the member
+		// variables (instead of going through H() or W()).
 		dng_rect (int32 tt, int32 ll, int32 bb, int32 rr)
 			:	t (tt)
 			,	l (ll)
 			,	b (bb)
 			,	r (rr)
 			{
+			int32 dummy;
+			if (!SafeInt32Sub(r, l, &dummy) ||
+				!SafeInt32Sub(b, t, &dummy))
+				{
+				ThrowProgramError ("Overflow in dng_rect constructor");
+				}
 			}
 			
 		dng_rect (uint32 h, uint32 w)
 			:	t (0)
 			,	l (0)
-			,	b ((int32) h)
-			,	r ((int32) w)
 			{
+				if (!ConvertUint32ToInt32(h, &b) ||
+					!ConvertUint32ToInt32(w, &r))
+					{
+					ThrowProgramError ("Overflow in dng_rect constructor");
+					}
 			}
 			
 		dng_rect (const dng_point &size)
@@ -97,14 +113,51 @@ class dng_rect
 			return !IsEmpty ();
 			}
 			
+		// Returns the width of the rectangle, or 0 if r is smaller than l.
+		// Throws an exception if the width is too large to be represented as
+		// a _signed_ int32 (even if it would fit in a uint32). This is
+		// consciously conservative -- there are existing uses of W() where
+		// the result is converted to an int32 without an overflow check, and
+		// we want to make sure no overflow can occur in such cases. We provide
+		// this check in addition to the check performed in the "two-corners"
+		// constructor to protect client code that produes a dng_rect with
+		// excessive size by initializing or modifying the member variables
+		// directly.
 		uint32 W () const
 			{
-			return (r >= l ? (uint32) (r - l) : 0);
+			if (r >= l)
+				{
+				int32 width;
+				if (!SafeInt32Sub(r, l, &width))
+					{
+					ThrowProgramError ("Overflow computing rectangle width");
+					}
+				return static_cast<uint32>(width);
+				}
+			else
+				{
+				return 0;
+				}
 			}
 	
+		// Returns the height of the rectangle, or 0 if b is smaller than t.
+		// Throws an exception if the height is too large to be represented as
+		// a _signed_ int32 (see W() for rationale).
 		uint32 H () const
 			{
-			return (b >= t ? (uint32) (b - t) : 0);
+			if (b >= t)
+				{
+				int32 height;
+				if (!SafeInt32Sub(b, t, &height))
+					{
+					ThrowProgramError ("Overflow computing rectangle height");
+					}
+				return static_cast<uint32>(height);
+				}
+			else
+				{
+				return 0;
+				}
 			}
 		
 		dng_point TL () const

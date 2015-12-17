@@ -25,6 +25,7 @@
 #include "dng_image.h"
 #include "dng_negative.h"
 #include "dng_resample.h"
+#include "dng_safe_arithmetic.h"
 #include "dng_utils.h"
 
 /*****************************************************************************/
@@ -960,7 +961,15 @@ void dng_render_task::Start (uint32 threadCount,
 
 	// Allocate temp buffer to hold one row of RGB data.
 							
-	uint32 tempBufferSize = tileSize.h * (uint32) sizeof (real32) * 3;
+	uint32 tempBufferSize = 0;
+	
+	if (!SafeUint32Mult (tileSize.h, (uint32) sizeof (real32), &tempBufferSize) ||
+		 !SafeUint32Mult (tempBufferSize, 3, &tempBufferSize))
+		{
+		
+		ThrowMemoryFull("Arithmetic overflow computing buffer size.");
+		
+		}
 	
 	for (uint32 threadIndex = 0; threadIndex < threadCount; threadIndex++)
 		{

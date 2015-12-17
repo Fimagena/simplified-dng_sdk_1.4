@@ -25,6 +25,7 @@
 
 #include "dng_1d_function.h"
 #include "dng_matrix.h"
+#include "dng_memory.h"
 #include "dng_opcodes.h"
 #include "dng_pixel_buffer.h"
 #include "dng_point.h"
@@ -546,7 +547,7 @@ class dng_vignette_radial_params
 		//
 		// Gain g = 1 + (k0 * r^2) + (k1 * r^4) + (k2 * r^6) + (k3 * r^8) + (k4 * r^10)
 
-		std::vector<real64> fParams;
+		dng_std_vector<real64> fParams;
 
 		dng_point_real64 fCenter;
 
@@ -554,7 +555,7 @@ class dng_vignette_radial_params
 
 		dng_vignette_radial_params ();
 
-		dng_vignette_radial_params (const std::vector<real64> &params,
+		dng_vignette_radial_params (const dng_std_vector<real64> &params,
 									const dng_point_real64 &center);
 
 		bool IsNOP () const;

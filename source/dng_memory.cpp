@@ -17,6 +17,7 @@
 
 #include "dng_bottlenecks.h"
 #include "dng_exceptions.h"
+#include "dng_safe_arithmetic.h"
 
 /*****************************************************************************/
 
@@ -37,6 +38,18 @@ dng_memory_data::dng_memory_data (uint32 size)
 	{
 	
 	Allocate (size);
+	
+	}
+
+/*****************************************************************************/
+
+dng_memory_data::dng_memory_data (uint32 count, std::size_t elementSize)
+
+	:	fBuffer (NULL)
+	
+	{
+	
+	Allocate (count, elementSize);
 	
 	}
 
@@ -73,6 +86,26 @@ void dng_memory_data::Allocate (uint32 size)
 	}
 				
 /*****************************************************************************/
+
+void dng_memory_data::Allocate (uint32 count, std::size_t elementSize)
+	{
+	
+	// Convert elementSize to a uint32.
+	const uint32 elementSizeAsUint32 = static_cast<uint32> (elementSize);
+	if (static_cast<std::size_t> (elementSizeAsUint32) != elementSize)
+		{
+		ThrowMemoryFull();
+		}
+	
+	// Compute required number of bytes and allocate memory.
+	uint32 numBytes;
+	if (!SafeUint32Mult(count, elementSizeAsUint32, &numBytes))
+		{
+		ThrowMemoryFull();
+		}
+	Allocate(numBytes);
+	
+	}
 
 void dng_memory_data::Clear ()
 	{

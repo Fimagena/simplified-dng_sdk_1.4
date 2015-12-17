@@ -77,6 +77,13 @@ class dng_1d_table
 			
 			int32 index = (int32) y;
 			
+			if (index < 0 || index > kTableSize)
+				{
+				
+				ThrowBadFormat("Index out of range.");
+				
+				}
+			
 			DNG_ASSERT (index >= 0 && index <= kTableSize,
 						"dng_1d_table::Interpolate parameter out of range");
 					

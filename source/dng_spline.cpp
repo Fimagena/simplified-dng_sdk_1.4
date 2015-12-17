@@ -106,9 +106,9 @@ void dng_spline_solver::Solve ()
 	if ((end - start) > 2)
 		{
 
-		std::vector<real64> E;
-		std::vector<real64> F;
-		std::vector<real64> G;
+		dng_std_vector<real64> E;
+		dng_std_vector<real64> F;
+		dng_std_vector<real64> G;
 		
 		E.resize (count);
 		F.resize (count);

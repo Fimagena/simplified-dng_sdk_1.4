@@ -17,6 +17,7 @@
 
 #include "dng_bottlenecks.h"
 #include "dng_exceptions.h"
+#include "dng_safe_arithmetic.h"
 #include "dng_utils.h"
 
 /*****************************************************************************/
@@ -120,14 +121,24 @@ void dng_memory_stream::DoSetLength (uint64 length)
 		
 		if (fPageCount == fPagesAllocated)
 			{
-			
-			uint32 newSize = Max_uint32 (fPagesAllocated + 32,
-										 fPagesAllocated * 2);
-			
-			dng_memory_block **list = (dng_memory_block **)
-									  malloc (newSize * sizeof (dng_memory_block *));
-			
-			if (!list)
+
+			uint32 newSizeTemp1 = 0, newSizeTemp2 = 0;
+			if (!SafeUint32Add (fPagesAllocated, 32u, &newSizeTemp1) ||
+				!SafeUint32Mult (fPagesAllocated, 2u, &newSizeTemp2))
+				{
+				ThrowMemoryFull ("Arithmetic overflow in DoSetLength()");
+				}
+			uint32 newSize = Max_uint32 (newSizeTemp1, newSizeTemp2);
+			uint32 numBytes;
+			if (!SafeUint32Mult (newSize, sizeof (dng_memory_block *),
+								 &numBytes))
+				{
+				ThrowMemoryFull ("Arithmetic overflow in DoSetLength()");
+				}
+
+			dng_memory_block **list = (dng_memory_block **) malloc (numBytes);
+
+					if (!list)
 				{
 				
 				ThrowMemoryFull ();
@@ -137,6 +148,10 @@ void dng_memory_stream::DoSetLength (uint64 length)
 			if (fPageCount)
 				{
 				
+				// The multiplication here is safe against overflow. fPageCount
+				// can never reach a value that is large enough to cause
+				// overflow because the computation of numBytes above would fail
+				// before a list of that size could be allocated.
 				DoCopyBytes (fPageList,
 							 list,
 							 fPageCount * (uint32) sizeof (dng_memory_block *));

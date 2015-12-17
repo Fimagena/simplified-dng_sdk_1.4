@@ -22,7 +22,12 @@
 /*****************************************************************************/
 
 #include "dng_classes.h"
+#include "dng_exceptions.h"
+#include "dng_safe_arithmetic.h"
 #include "dng_types.h"
+
+#include <cstdlib>
+#include <vector>
 
 /*****************************************************************************/
 
@@ -51,6 +56,15 @@ class dng_memory_data
 
 		dng_memory_data (uint32 size);
 		
+		/// Note: This constructor is for internal use only and should not be
+		/// considered part of the DNG SDK API.
+		///
+		/// Construct memory buffer of count elements of elementSize bytes each.
+		/// \param count Number of elements.
+		/// \param elementSize Size of each element.
+		/// \exception dng_memory_full with fErrorCode equal to dng_error_memory.
+		dng_memory_data (uint32 count, std::size_t elementSize);
+
 		/// Release memory buffer using free.
 
 		~dng_memory_data ();
@@ -60,6 +74,16 @@ class dng_memory_data
 		/// \exception dng_memory_full with fErrorCode equal to dng_error_memory.
 
 		void Allocate (uint32 size);
+
+		/// Note: This method is for internal use only and should not be
+		/// considered part of the DNG SDK API.
+		///
+		/// Clear existing memory buffer and allocate new memory of count
+		/// elements of elementSize bytes each.
+		/// \param count Number of elements.
+		/// \param elementSize Size of each element.
+		/// \exception dng_memory_full with fErrorCode equal to dng_error_memory.
+		void Allocate (uint32 count, std::size_t elementSize);
 
 		/// Release any allocated memory using free. Object is still valid and
 		/// Allocate can be called again.
@@ -297,7 +321,13 @@ class dng_memory_block
 			//  Linux is 8 byte, but it's using mem_align.  
 			// We should fix the SIMD routines and revisit removing this padding - Alec.
 			
-			return fLogicalSize + 64;
+			uint32 result;
+			if (!SafeUint32Add(fLogicalSize, 64u, &result))
+				{
+				ThrowMemoryFull("Arithmetic overflow in PhysicalSize()");
+				}
+			
+			return result;
 			
 			}
 		
@@ -507,6 +537,54 @@ class dng_memory_allocator
 /// buffer. 
 
 extern dng_memory_allocator gDefaultDNGMemoryAllocator;
+
+/*****************************************************************************/
+
+// C++ allocator (i.e. an implementation of the Allocator concept) that throws a
+// dng_exception with error code dng_error_memory if it cannot allocate memory.
+template <typename T>
+class dng_std_allocator
+	{
+	
+	public:
+		typedef T value_type;
+		
+		// Default implementations of default constructor and copy constructor.
+		dng_std_allocator () = default;
+		dng_std_allocator (const dng_std_allocator&) = default;
+		
+		T* allocate (size_t n)
+			{
+			const size_t size = SafeSizetMult(n, sizeof (T));
+			T *retval = static_cast<T *> (malloc (size));
+			if (!retval) {
+				ThrowMemoryFull ();
+			}
+			return retval;
+			}
+		
+		void deallocate (T *ptr, size_t n)
+			{
+			free (ptr);
+			}
+};
+
+template <class T>
+bool operator== (const dng_std_allocator<T> &a1,
+				 const dng_std_allocator<T> &a2)
+	{
+	return true;
+	}
+
+template <class T>
+bool operator!= (const dng_std_allocator<T> &a1,
+				 const dng_std_allocator<T> &a2)
+	{
+	return false;
+	}
+
+// std::vector specialized to use dng_std_allocator for allocation.
+template <class T> using dng_std_vector = std::vector<T, dng_std_allocator<T> >;
 
 /*****************************************************************************/
 

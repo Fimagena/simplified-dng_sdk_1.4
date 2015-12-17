@@ -24,6 +24,7 @@
 #include "dng_image_writer.h"
 #include "dng_memory_stream.h"
 #include "dng_mutex.h"
+#include "dng_safe_arithmetic.h"
 
 /*****************************************************************************/
 
@@ -98,9 +99,8 @@ class dng_jpeg_image_encode_task : public dng_area_task
 			AutoPtr<dng_memory_block> subTileBlockBuffer;
 			AutoPtr<dng_memory_block> tempBuffer;
 			
-			uint32 uncompressedSize = fIFD.fTileLength *
-									  fIFD.fTileWidth  *
-									  fIFD.fSamplesPerPixel;
+			uint32 uncompressedSize = SafeUint32Mult (
+				fIFD.fTileLength, fIFD.fTileWidth, fIFD.fSamplesPerPixel);
 			
 			uncompressedBuffer.Reset (fHost.Allocate (uncompressedSize));
 			
@@ -220,7 +220,7 @@ void dng_jpeg_image::Encode (dng_host &host,
 	
 	uint32 tileCount = tilesAcross * tilesDown;
 	
-	fJPEGData.Reset (new dng_jpeg_image_tile_ptr [tileCount]);
+	fJPEGData.Reset (tileCount);
 	
 	uint32 threadCount = Min_uint32 (tileCount,
 									 host.PerformAreaTaskThreads ());
@@ -329,7 +329,7 @@ dng_fingerprint dng_jpeg_image::FindDigest (dng_host &host) const
 	
 	uint32 arrayCount = tileCount + (fJPEGTables.Get () ? 1 : 0);
 	
-	AutoArray<dng_fingerprint> digests (new dng_fingerprint [arrayCount]);
+	AutoArray<dng_fingerprint> digests (arrayCount);
 	
 	// Compute digest of each compressed tile.
 

@@ -136,12 +136,16 @@ dng_gain_map_interpolator::dng_gain_map_interpolator (const dng_gain_map &map,
 	else
 		{
 		
-		fRowIndex1 = (uint32) rowIndexF;
+		if (fMap.Points ().v < 1)
+			{
+			ThrowProgramError ("Empty gain map");
+			}
+		uint32 lastRow = static_cast<uint32> (fMap.Points ().v - 1);
 		
-		if ((int32) fRowIndex1 >= fMap.Points ().v - 1)
+		if (rowIndexF >= static_cast<real64> (lastRow))
 			{
 			
-			fRowIndex1 = fMap.Points ().v - 1;
+			fRowIndex1 = lastRow;
 			fRowIndex2 = fRowIndex1;
 			
 			fRowFract = 0.0f;
@@ -151,6 +155,10 @@ dng_gain_map_interpolator::dng_gain_map_interpolator (const dng_gain_map &map,
 		else
 			{
 			
+			// If we got here, we know that rowIndexF can safely be converted to
+			// a uint32 and that static_cast<uint32> (rowIndexF) < lastRow. This
+			// implies fRowIndex2 <= lastRow below.
+			fRowIndex1 = static_cast<uint32> (rowIndexF);
 			fRowIndex2 = fRowIndex1 + 1;
 			
 			fRowFract = (real32) (rowIndexF - (real64) fRowIndex1);
@@ -195,12 +203,16 @@ void dng_gain_map_interpolator::ResetColumn ()
 	else
 		{
 	
-		uint32 colIndex = (uint32) colIndexF;
+		if (fMap.Points ().h < 1)
+			{
+			ThrowProgramError ("Empty gain map");
+			}
+		uint32 lastCol = static_cast<uint32> (fMap.Points ().h - 1);
 		
-		if ((int32) colIndex >= fMap.Points ().h - 1)
+		if (colIndexF >= static_cast<real64> (lastCol))
 			{
 			
-			fValueBase = InterpolateEntry (fMap.Points ().h - 1);
+			fValueBase = InterpolateEntry (lastCol);
 			
 			fValueStep = 0.0f;
 			
@@ -211,6 +223,11 @@ void dng_gain_map_interpolator::ResetColumn ()
 		else
 			{
 			
+			// If we got here, we know that colIndexF can safely be converted to
+			// a uint32 and that static_cast<uint32> (colIndexF) < lastCol. This
+			// implies colIndex + 1 <= lastCol, i.e. the argument to
+			// InterpolateEntry() below is valid.
+			uint32 colIndex = static_cast<uint32> (colIndexF);
 			real64 base  = InterpolateEntry (colIndex);
 			real64 delta = InterpolateEntry (colIndex + 1) - base;
 			
@@ -248,9 +265,8 @@ dng_gain_map::dng_gain_map (dng_memory_allocator &allocator,
 	
 	{
 	
-	fBuffer.Reset (allocator.Allocate (fPoints.v *
-									   fPoints.h *
-									   fPlanes * (uint32) sizeof (real32)));
+	fBuffer.Reset (allocator.Allocate (
+		ComputeBufferSize (ttFloat, fPoints, fPlanes, pad16Bytes)));
 	
 	}
 					  

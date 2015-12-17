@@ -24,6 +24,7 @@
 
 #include "dng_auto_ptr.h"
 #include "dng_classes.h"
+#include "dng_memory.h"
 #include "dng_opcodes.h"
 
 #include <vector>
@@ -37,7 +38,7 @@ class dng_opcode_list
 	
 	private:
 	
-		std::vector<dng_opcode *> fList;
+		dng_std_vector<dng_opcode *> fList;
 		
 		bool fAlwaysApply;
 		

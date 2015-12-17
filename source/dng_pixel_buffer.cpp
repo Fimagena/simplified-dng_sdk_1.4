@@ -18,8 +18,22 @@
 #include "dng_bottlenecks.h"
 #include "dng_exceptions.h"
 #include "dng_flags.h"
+#include "dng_safe_arithmetic.h"
 #include "dng_tag_types.h"
+#include "dng_tag_values.h"
 #include "dng_utils.h"
+
+/*****************************************************************************/
+
+namespace {
+
+bool SafeUint32ToInt32Mult(uint32 arg1, uint32 arg2, int32 *result) {
+	uint32 uint32_result;
+	return SafeUint32Mult(arg1, arg2, &uint32_result) &&
+		ConvertUint32ToInt32(uint32_result, result);
+}
+
+} // namespace
 
 /*****************************************************************************/
 
@@ -345,6 +359,84 @@ dng_pixel_buffer::dng_pixel_buffer ()
 	
 	}
 							
+/*****************************************************************************/
+
+dng_pixel_buffer::dng_pixel_buffer (const dng_rect &area,
+									uint32 plane,
+									uint32 planes,
+									uint32 pixelType,
+									uint32 planarConfiguration,
+									void *data)
+
+	:	fArea       (area)
+	,	fPlane      (plane)
+	,	fPlanes     (planes)
+	,	fRowStep    (0)
+	,	fColStep    (0)
+	,	fPlaneStep  (0)
+	,	fPixelType  (pixelType)
+	,	fPixelSize  (TagTypeSize(pixelType))
+	,	fData       (data)
+	,	fDirty      (true)
+	
+	{
+	
+	const char *overflowMessage = "Arithmetic overflow in pixel buffer setup";
+
+	// Initialize fRowStep, fColStep and fPlaneStep according to the desired
+	// pixel layout.
+	switch (planarConfiguration)
+		{
+		case pcInterleaved:
+			fPlaneStep = 1;
+			if (!ConvertUint32ToInt32 (fPlanes, &fColStep) ||
+				!SafeUint32ToInt32Mult (fArea.W(), fPlanes, &fRowStep))
+				{
+				ThrowMemoryFull (overflowMessage);
+				}
+			break;
+		case pcPlanar:
+			fColStep = 1;
+			// Even though we've hardened dng_rect::W() to guarantee that it
+			// will never return a result that's out of range for an int32,
+			// we still protect the conversion for defense in depth.
+			if (!ConvertUint32ToInt32 (fArea.W(), &fRowStep) ||
+				!SafeUint32ToInt32Mult (fArea.H(), fArea.W(), &fPlaneStep))
+				{
+				ThrowMemoryFull (overflowMessage);
+				}
+			break;
+		case pcRowInterleaved:
+		case pcRowInterleavedAlign16:
+			{
+			fColStep = 1;
+			uint32 planeStepUint32;
+			if (planarConfiguration == pcRowInterleaved)
+				{
+				planeStepUint32 = fArea.W();
+				}
+			else
+				{
+				if (!RoundUpForPixelSize (fArea.W(), fPixelSize,
+										  &planeStepUint32))
+					{
+					ThrowMemoryFull (overflowMessage);
+					}
+				}
+			if (!ConvertUint32ToInt32 (planeStepUint32, &fPlaneStep) ||
+				!SafeUint32ToInt32Mult (planeStepUint32, fPlanes, &fRowStep))
+				{
+				ThrowMemoryFull (overflowMessage);
+				}
+			break;
+			}
+		default:
+			ThrowProgramError ("Invalid value for 'planarConfiguration'");
+			break;
+		}
+	
+	}
+
 /*****************************************************************************/
 
 dng_pixel_buffer::dng_pixel_buffer (const dng_pixel_buffer &buffer)
