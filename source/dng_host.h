@@ -346,7 +346,11 @@ class dng_host
 		/// Factory method for dng_xmp class. Can be used to customize allocation or 
 		/// to ensure a derived class is used instead of dng_xmp.
 
+		#if qDNGUseXMP
+		
 		virtual dng_xmp * Make_dng_xmp ();
+		
+		#endif
 
 		/// Factory method for dng_shared class. Can be used to customize allocation 
 		/// or to ensure a derived class is used instead of dng_shared.

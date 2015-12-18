@@ -43,7 +43,9 @@
 #include "dng_tag_values.h"
 #include "dng_tile_iterator.h"
 #include "dng_utils.h"
+#if qDNGUseXMP
 #include "dng_xmp.h"
+#endif
 
 /*****************************************************************************/
 
@@ -139,7 +141,13 @@ dng_metadata::dng_metadata (dng_host &host)
 	,	fOriginalExif				()
 	,	fIPTCBlock          		()
 	,	fIPTCOffset					(kDNGStreamInvalidOffset)
+	
+	#if qDNGUseXMP
+	
 	,	fXMP			    		(host.Make_dng_xmp ())
+	
+	#endif
+	
 	,	fEmbeddedXMPDigest       	()
 	,	fXMPinSidecar	    		(false)
 	,	fXMPisNewer		    		(false)
@@ -187,7 +195,13 @@ dng_metadata::dng_metadata (const dng_metadata &rhs,
 	,	fOriginalExif				(CloneAutoPtr (rhs.fOriginalExif))
 	,	fIPTCBlock          		(CloneAutoPtr (rhs.fIPTCBlock, allocator))
 	,	fIPTCOffset					(rhs.fIPTCOffset)
+	
+	#if qDNGUseXMP
+	
 	,	fXMP			    		(CloneAutoPtr (rhs.fXMP))
+	
+	#endif
+	
 	,	fEmbeddedXMPDigest       	(rhs.fEmbeddedXMPDigest)
 	,	fXMPinSidecar	    		(rhs.fXMPinSidecar)
 	,	fXMPisNewer		    		(rhs.fXMPisNewer)
@@ -224,7 +238,11 @@ void dng_metadata::ApplyOrientation (const dng_orientation &orientation)
 	
 	fBaseOrientation += orientation;
 	
+
+	#if qDNGUseXMP
 	fXMP->SetOrientation (fBaseOrientation);
+	
+	#endif
 
 	}
 				  
@@ -505,6 +523,8 @@ dng_fingerprint dng_metadata::IPTCDigest (bool includePadding) const
 		
 /******************************************************************************/
 
+#if qDNGUseXMP
+
 void dng_metadata::RebuildIPTC (dng_memory_allocator &allocator,
 								bool padForTIFF)
 	{
@@ -631,6 +651,8 @@ void dng_metadata::SetEmbeddedXMP (dng_host &host,
 
 	}
 
+#endif
+
 /*****************************************************************************/
 
 void dng_metadata::SynchronizeMetadata ()
@@ -643,6 +665,8 @@ void dng_metadata::SynchronizeMetadata ()
 		
 		}
 		
+	#if qDNGUseXMP
+	
 	fXMP->ValidateMetadata ();
 	
 	fXMP->IngestIPTC (*this, fXMPisNewer);
@@ -650,6 +674,8 @@ void dng_metadata::SynchronizeMetadata ()
 	fXMP->SyncExif (*fExif.Get ());
 	
 	fXMP->SyncOrientation (*this, fXMPinSidecar);
+	
+	#endif
 	
 	}
 					
@@ -660,7 +686,9 @@ void dng_metadata::UpdateDateTime (const dng_date_time_info &dt)
 	
 	fExif->UpdateDateTime (dt);
 	
+#if qDNGUseXMP
 	fXMP->UpdateDateTime (dt);
+#endif
 	
 	}
 					
@@ -675,7 +703,11 @@ void dng_metadata::UpdateDateTimeToNow ()
 	
 	UpdateDateTime (dt);
 	
+	#if qDNGUseXMP
+	
 	fXMP->UpdateMetadataDate (dt);
+	
+	#endif
 	
 	}
 					
@@ -688,7 +720,9 @@ void dng_metadata::UpdateMetadataDateTimeToNow ()
 	
 	CurrentDateTimeAndZone (dt);
 	
+	#if qDNGUseXMP
 	fXMP->UpdateMetadataDate (dt);
+	#endif
 	
 	}
 					
@@ -3341,6 +3375,8 @@ void dng_negative::PostParse (dng_host &host,
 		
 		// XMP metadata.
 		
+		#if qDNGUseXMP
+		
 		if (shared.fXMPCount)
 			{
 			
@@ -3366,6 +3402,8 @@ void dng_negative::PostParse (dng_host &host,
 			
 			}
 				
+		#endif
+		
 		// Color info.
 		
 		if (!IsMonochrome ())

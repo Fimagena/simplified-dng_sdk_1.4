@@ -247,7 +247,11 @@ class dng_metadata
 		
 		// XMP data.
 		
+		#if qDNGUseXMP
+		
 		AutoPtr<dng_xmp> fXMP;
+		
+		#endif
 		
 		// If there a valid embedded XMP block, has is its digest?  NULL if no valid
 		// embedded XMP.
@@ -397,6 +401,8 @@ class dng_metadata
 			
 		// API for XMP metadata:
 		
+		#if qDNGUseXMP
+		
 		bool SetXMP (dng_host &host,
 					 const void *buffer,
 					 uint32 count,
@@ -442,6 +448,8 @@ class dng_metadata
 	
 		void ResetXMPSidecarNewer (dng_xmp * newXMP, bool inSidecar, bool isNewer );
 			
+		#endif
+		
 		// Synchronize metadata sources.
 		
 		void SynchronizeMetadata ();
@@ -491,6 +499,8 @@ const E & dng_metadata::Exif () const
 
 /*****************************************************************************/
 
+#if qDNGUseXMP
+
 template< class X >
 X & dng_metadata::XMP ()
 	{
@@ -508,6 +518,8 @@ const X & dng_metadata::XMP () const
 	if (!xmp) ThrowProgramError ("XMP object is NULL.");
 	return dynamic_cast< const X & > (*xmp);
 	}
+
+#endif
 
 /*****************************************************************************/
 
@@ -1928,6 +1940,8 @@ class dng_negative
 		
 		// API for XMP metadata:
 		
+		#if qDNGUseXMP
+		
 		bool SetXMP (dng_host &host,
 					 const void *buffer,
 					 uint32 count,
@@ -1975,6 +1989,8 @@ class dng_negative
 			return Metadata ().HaveValidEmbeddedXMP ();
 			}
 			
+		#endif
+		
 		// API for source MIMI type.
 		
 		void SetSourceMIMI (const char *s)

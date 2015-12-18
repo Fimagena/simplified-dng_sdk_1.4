@@ -29,7 +29,10 @@
 #include "dng_resample.h"
 #include "dng_shared.h"
 #include "dng_simple_image.h"
+
+#if qDNGUseXMP
 #include "dng_xmp.h"
+#endif
 
 /*****************************************************************************/
 
@@ -268,6 +271,8 @@ dng_exif * dng_host::Make_dng_exif ()
 
 /*****************************************************************************/
 
+#if qDNGUseXMP
+
 dng_xmp * dng_host::Make_dng_xmp ()
 	{
 	
@@ -283,6 +288,8 @@ dng_xmp * dng_host::Make_dng_xmp ()
 	return result;
 	
 	}
+
+#endif
 
 /*****************************************************************************/
 

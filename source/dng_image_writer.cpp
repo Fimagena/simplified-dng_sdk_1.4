@@ -40,7 +40,10 @@
 #include "dng_tag_codes.h"
 #include "dng_tag_values.h"
 #include "dng_utils.h"
+
+#if qDNGUseXMP
 #include "dng_xmp.h"
+#endif
 
 #include "zlib.h"
 
@@ -80,6 +83,8 @@ static void SpoolAdobeData (dng_stream &stream,
 	
 	TempBigEndian tempEndian (stream);
 	
+	#if qDNGUseXMP
+
 	if (metadata && metadata->GetXMP ())
 		{
 		
@@ -132,6 +137,8 @@ static void SpoolAdobeData (dng_stream &stream,
 			}
 		
 		}
+	
+	#endif
 	
 	if (preview)
 		{
@@ -538,6 +545,8 @@ tag_xmp::tag_xmp (const dng_xmp *xmp)
 	
 	{
 	
+	#if qDNGUseXMP
+	
 	if (xmp)
 		{
 		
@@ -553,6 +562,8 @@ tag_xmp::tag_xmp (const dng_xmp *xmp)
 			}
 		
 		}
+	
+	#endif
 	
 	}
 
@@ -4758,6 +4769,8 @@ void dng_image_writer::WriteImage (dng_host &host,
 
 /*****************************************************************************/
 
+#if qDNGUseXMP
+
 static void CopyString (const dng_xmp &oldXMP,
 						dng_xmp &newXMP,
 						const char *ns,
@@ -4889,6 +4902,8 @@ static void CopyBoolean (const dng_xmp &oldXMP,
 	
 	}
 								 
+	
+#endif
 /*****************************************************************************/
 
 void dng_image_writer::CleanUpMetadata (dng_host &host,
@@ -4897,6 +4912,8 @@ void dng_image_writer::CleanUpMetadata (dng_host &host,
 										const char *dstMIMI,
 										const char *software)
 	{
+	
+	#if qDNGUseXMP
 	
 	if (metadata.GetXMP () && metadata.GetExif ())
 		{
@@ -5230,6 +5247,8 @@ void dng_image_writer::CleanUpMetadata (dng_host &host,
 		
 		}
 	
+	#endif
+	
 	}
 
 /*****************************************************************************/
@@ -5474,6 +5493,8 @@ void dng_image_writer::WriteTIFFWithProfile (dng_host &host,
 		
 	// XMP metadata.
 	
+	#if qDNGUseXMP
+	
 	tag_xmp tagXMP (metadata.Get () ? metadata->GetXMP () : NULL);
 	
 	if (tagXMP.Count ())
@@ -5481,6 +5502,8 @@ void dng_image_writer::WriteTIFFWithProfile (dng_host &host,
 		mainIFD.Add (&tagXMP);
 		}
 		
+	#endif
+	
 	// IPTC metadata.
 	
 	tag_iptc tagIPTC (metadata.Get () ? metadata->IPTCData   () : NULL,
@@ -6484,6 +6507,8 @@ void dng_image_writer::WriteDNG (dng_host &host,
 
 	// XMP metadata.
 	
+	#if qDNGUseXMP
+		
 	tag_xmp tagXMP (metadata->GetXMP ());
 	
 	if (tagXMP.Count ())
@@ -6493,6 +6518,8 @@ void dng_image_writer::WriteDNG (dng_host &host,
 		
 		}
 		
+	#endif
+	
 	// Exif tags.
 	
 	exif_tag_set exifSet (mainIFD,

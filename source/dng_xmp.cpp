@@ -12,6 +12,7 @@
 /* $Author: tknoll $ */
 
 /*****************************************************************************/
+#if qDNGUseXMP
 
 #include "dng_xmp.h"
 
@@ -4412,4 +4413,5 @@ void dng_xmp::DocOpsUpdateMetadata (const char *srcMIMI)
 
 #endif
 
+#endif
 /*****************************************************************************/

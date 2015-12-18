@@ -23,6 +23,8 @@
 #include "dng_flags.h"
 #include "dng_types.h"
 
+#if qDNGUseXMP
+
 /*****************************************************************************/
 
 extern const char *XMP_NS_TIFF;
@@ -231,6 +233,7 @@ class dng_xmp_sdk
 
 	};
 	
+#endif
 /*****************************************************************************/
 
 #endif

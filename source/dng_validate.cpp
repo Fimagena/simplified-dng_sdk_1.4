@@ -48,8 +48,11 @@
 #include "dng_tag_codes.h"
 #include "dng_tag_types.h"
 #include "dng_tag_values.h"
+
+#if qDNGUseXMP
 #include "dng_xmp.h"
 #include "dng_xmp_sdk.h"
+#endif
 
 /*****************************************************************************/
 
@@ -452,6 +455,8 @@ static dng_error_code dng_validate (const char *filename)
 			// not keep any Camera Raw settings in the XMP around when
 			// writing rendered files.
 			
+			#if qDNGUseXMP
+			
 			if (negative->GetXMP ())
 				{
 
@@ -459,6 +464,8 @@ static dng_error_code dng_validate (const char *filename)
 				negative->GetXMP ()->RemoveProperties (XMP_NS_CRSS);
 				
 				}
+			
+			#endif
 			
 			// Write TIF file.
 			
@@ -855,8 +862,12 @@ int main (int argc, char *argv [])
 			fprintf (stderr, "*** No file specified\n");
 			return 1;
 			}
+		
+		#if qDNGUseXMP
 			
 		dng_xmp_sdk::InitializeSDK ();
+		
+		#endif
 			
 		int result = 0;
 		
@@ -873,7 +884,11 @@ int main (int argc, char *argv [])
 			
 			}
 		
+		#if qDNGUseXMP
+		
 		dng_xmp_sdk::TerminateSDK ();
+		
+		#endif
 			
 		return result;
 		
