@@ -23,8 +23,13 @@
 #include "dng_safe_arithmetic.h"
 
 #if qMacOS
+#include <TargetConditionals.h>
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+#include <MobileCoreServices/MobileCoreServices.h>
+#else
 #include <CoreServices/CoreServices.h>
-#endif
+#endif  // TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+#endif  // qMacOS
 
 #if qWinOS
 #include <windows.h>
@@ -87,6 +92,29 @@ static void ThrowNotHardened()
 	}
 
 #if qMacOS
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+
+static uint32 Extract_SystemEncoding (const dng_string &dngString,
+							   		  dng_memory_data &buffer)
+	{
+		ThrowProgramError ("Extract_SystemEncoding() not implemented on iOS");
+		return 0;
+	}
+
+static void Assign_SystemEncoding (dng_string &dngString,
+							       const char *otherString)
+	{
+		ThrowProgramError ("Assign_SystemEncoding() not implemented on iOS");
+
+	}
+
+static void Assign_JIS_X208_1990 (dng_string &dngString,
+							      const char *otherString)
+	{
+		ThrowProgramError ("Assign_JIS_X208_1990() not implemented on iOS");
+	}
+
+#else
 
 static void Assign_Multibyte (dng_string &dngString,
 							  const char *otherString,
@@ -294,7 +322,8 @@ static void Assign_JIS_X208_1990 (dng_string &dngString,
 
 	}
 
-#endif
+#endif  // TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+#endif  // qMacOS
 
 /*****************************************************************************/
 
@@ -2146,7 +2175,13 @@ int32 dng_string::Compare (const dng_string &s) const
 	{
 	
 	#if qMacOS
+	#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
 	
+		ThrowProgramError ("Compare() not implemented on iOS");
+		return 0;
+		
+	#else
+
 		{
 	
 		dng_memory_data aStrA;
@@ -2230,7 +2265,8 @@ int32 dng_string::Compare (const dng_string &s) const
 			}
 			
 		}
-
+	
+	#endif  // TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
 	#elif qWinOS
 	
 		{

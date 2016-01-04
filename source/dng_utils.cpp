@@ -29,8 +29,13 @@
 #include "dng_tile_iterator.h"
 
 #if qMacOS
+#include <TargetConditionals.h>
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+#include <MobileCoreServices/MobileCoreServices.h>
+#else
 #include <CoreServices/CoreServices.h>
-#endif
+#endif  // TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+#endif  // qMacOS
 
 #if qiPhone || qMacOS
 // these provide timers
