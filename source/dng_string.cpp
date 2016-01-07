@@ -35,7 +35,7 @@
 #include <windows.h>
 #endif
 
-#if qiPhone || qAndroid
+#if qiPhone || qAndroid || qLinux
 #include <ctype.h> // for isdigit
 #endif
 
