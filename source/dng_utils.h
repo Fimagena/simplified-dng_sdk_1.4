@@ -26,6 +26,11 @@
 
 /*****************************************************************************/
 
+// The unsigned integer overflow is intended here since a wrap around is used to
+// calculate the abs() in the branchless version.
+#if defined(__clang__)
+__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
 inline uint32 Abs_int32 (int32 x)
 	{
 	
@@ -1130,6 +1135,9 @@ inline int32 Mulsh86 (int32 x, int32 y)
 // This is the ACM standard 30 bit generator:
 // x' = (x * 16807) mod 2^31-1
 
+#if defined(__clang__)
+__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
 inline uint32 DNG_Random (uint32 seed)
 	{
 	

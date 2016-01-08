@@ -1521,7 +1521,7 @@ void dng_info::ParseDNGPrivateData (dng_host &host,
 			#endif
 				
 			uint16 order_mark = stream.Get_uint16 ();
-			uint64 old_offset = stream.Get_uint32 ();
+			int64 old_offset = stream.Get_uint32 ();
 
 			uint32 tempSize = section_count - 6;
 			

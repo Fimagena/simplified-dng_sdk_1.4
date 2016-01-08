@@ -1419,12 +1419,12 @@ void RefBaselineHueSatMap (const real32 *sPtrR,
 					  valDivisions);
 					  
 	real32 hScale = (hueDivisions < 2) ? 0.0f : (hueDivisions * (1.0f / 6.0f));
-	real32 sScale = (real32) (satDivisions - 1);
-	real32 vScale = (real32) (valDivisions - 1);
+	real32 sScale = (real32) ((int32) satDivisions - 1);
+	real32 vScale = (real32) ((int32) valDivisions - 1);
 		
-	int32 maxHueIndex0 = hueDivisions - 1;
-	int32 maxSatIndex0 = satDivisions - 2;
-	int32 maxValIndex0 = valDivisions - 2;
+	int32 maxHueIndex0 = (int32) hueDivisions - 1;
+	int32 maxSatIndex0 = (int32) satDivisions - 2;
+	int32 maxValIndex0 = (int32) valDivisions - 2;
 
 	const bool hasEncodeTable = ((encodeTable != NULL) && (encodeTable->Table () != NULL));
 	const bool hasDecodeTable = ((decodeTable != NULL) && (decodeTable->Table () != NULL));

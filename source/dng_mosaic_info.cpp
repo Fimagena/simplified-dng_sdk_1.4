@@ -286,14 +286,20 @@ class dng_bilinear_pattern
 		
 	private:
 	
+#if defined(__clang__)
+__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
 		uint32 DeltaRow (uint32 row, int32 delta)
 			{
-			return (row + fPatRows + delta) % fPatRows;
+			return (row + fPatRows + (uint32) delta) % fPatRows;
 			}
-			
+		
+#if defined(__clang__)
+__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif	
 		uint32 DeltaCol (uint32 col, int32 delta)
 			{
-			return (col + fPatCols + delta) % fPatCols;
+			return (col + fPatCols + (uint32) delta) % fPatCols;
 			}
 	
 		real32 LinearWeight1 (int32 d1, int32 d2)

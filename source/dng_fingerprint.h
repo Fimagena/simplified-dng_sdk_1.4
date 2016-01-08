@@ -225,7 +225,10 @@ class dng_md5_printer
 			}
 			
 		// FF, GG, HH, and II transformations for rounds 1, 2, 3, and 4.
-		
+	
+#if defined(__clang__)
+		__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
 		static inline void FF (uint32 &a,
 							   uint32 b,
 							   uint32 c,
@@ -239,6 +242,9 @@ class dng_md5_printer
 			a += b;
 			}
 
+#if defined(__clang__)
+		__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
 		static inline void GG (uint32 &a,
 							   uint32 b,
 							   uint32 c,
@@ -252,6 +258,9 @@ class dng_md5_printer
 			a += b;
 			}
 
+#if defined(__clang__)
+		__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
 		static inline void HH (uint32 &a,
 							   uint32 b,
 							   uint32 c,
@@ -265,6 +274,9 @@ class dng_md5_printer
 			a += b;
 			}
 
+#if defined(__clang__)
+		__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
 		static inline void II (uint32 &a,
 							   uint32 b,
 							   uint32 c,

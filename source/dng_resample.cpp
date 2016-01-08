@@ -231,7 +231,7 @@ void dng_resample_weights::Initialize (real64 scale,
 			for (j = 0; j < width; j++)
 				{
 				
-				int32 k = j - fRadius + 1;
+				int32 k = (int32) j - (int32) fRadius + 1;
 				
 				real64 x = (k - fract) * scale;
 				
@@ -393,13 +393,13 @@ void dng_resample_weights_2d::Initialize (const dng_resample_function &kernel,
 				for (uint32 i = 0; i < width; i++)
 					{
 		
-					int32 yInt = ((int32) i) - fRadius + 1;
+					int32 yInt = ((int32) i) - (int32) fRadius + 1;
 					real64 yPos = yInt - yFract;
 
 					for (uint32 j = 0; j < width; j++)
 						{
 				
-						int32 xInt = ((int32) j) - fRadius + 1;
+						int32 xInt = ((int32) j) - (int32) fRadius + 1;
 						real64 xPos = xInt - xFract;
 
 						#if 0
