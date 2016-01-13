@@ -898,6 +898,9 @@ void dng_camera_profile::ReadHueSatMap (dng_stream &stream,
 
 /*****************************************************************************/
 
+#if defined(__clang__)
+__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
 void dng_camera_profile::Parse (dng_stream &stream,
 								dng_camera_profile_info &profileInfo)
 	{

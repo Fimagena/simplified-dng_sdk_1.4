@@ -486,6 +486,9 @@ inline uint32 Floor_uint32 (real32 x)
 	
 	}
 
+#if defined(__clang__)
+__attribute__((no_sanitize("float-cast-overflow")))
+#endif
 inline uint32 Floor_uint32 (real64 x)
 	{
 	

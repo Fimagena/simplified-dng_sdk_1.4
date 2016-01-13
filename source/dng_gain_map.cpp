@@ -248,6 +248,9 @@ void dng_gain_map_interpolator::ResetColumn ()
 
 /*****************************************************************************/
 
+#if defined(__clang__)
+__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
 dng_gain_map::dng_gain_map (dng_memory_allocator &allocator,
 							const dng_point &points,
 							const dng_point_real64 &spacing,
