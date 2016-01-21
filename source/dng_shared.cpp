@@ -96,7 +96,7 @@ dng_camera_profile_info::~dng_camera_profile_info ()
 							 		 
 /*****************************************************************************/
 
-#if defined(__clang__)
+#if defined(__clang__) && !defined(__APPLE__)
 __attribute__((no_sanitize("unsigned-integer-overflow")))
 #endif
 bool dng_camera_profile_info::ParseTag (dng_stream &stream,

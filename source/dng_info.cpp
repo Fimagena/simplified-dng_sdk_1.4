@@ -407,7 +407,7 @@ bool dng_info::ValidateIFD (dng_stream &stream,
 
 /*****************************************************************************/
 
-#if defined(__clang__)
+#if defined(__clang__) && !defined(__APPLE__)
 __attribute__((no_sanitize("unsigned-integer-overflow")))
 #endif
 void dng_info::ParseIFD (dng_host &host,

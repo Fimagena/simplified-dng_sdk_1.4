@@ -286,7 +286,7 @@ class dng_bilinear_pattern
 		
 	private:
 	
-#if defined(__clang__)
+#if defined(__clang__) && !defined(__APPLE__)
 __attribute__((no_sanitize("unsigned-integer-overflow")))
 #endif
 		uint32 DeltaRow (uint32 row, int32 delta)
@@ -294,7 +294,7 @@ __attribute__((no_sanitize("unsigned-integer-overflow")))
 			return (row + fPatRows + (uint32) delta) % fPatRows;
 			}
 		
-#if defined(__clang__)
+#if defined(__clang__) && !defined(__APPLE__)
 __attribute__((no_sanitize("unsigned-integer-overflow")))
 #endif	
 		uint32 DeltaCol (uint32 col, int32 delta)

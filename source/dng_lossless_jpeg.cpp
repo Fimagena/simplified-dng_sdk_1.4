@@ -1678,7 +1678,7 @@ inline int32 dng_lossless_decoder::HuffDecode (HuffmanTable *htbl)
  *--------------------------------------------------------------
  */
 
-#if defined(__clang__)
+#if defined(__clang__) && !defined(__APPLE__)
 __attribute__((no_sanitize("undefined")))
 #endif
 inline void dng_lossless_decoder::HuffExtend (int32 &x, int32 s)
