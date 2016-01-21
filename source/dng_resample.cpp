@@ -583,7 +583,7 @@ dng_resample_task::dng_resample_task (const dng_image &srcImage,
 							
 /*****************************************************************************/
 
-#if defined(__clang__) && !defined(__APPLE__)
+#if defined(__clang__) && defined(__has_attribute) && __has_attribute(no_sanitize)
 __attribute__((no_sanitize("unsigned-integer-overflow")))
 #endif
 dng_rect dng_resample_task::SrcArea (const dng_rect &dstArea)

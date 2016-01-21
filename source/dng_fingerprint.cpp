@@ -448,7 +448,7 @@ void dng_md5_printer::Decode (uint32 *output,
 
 // MD5 basic transformation. Transforms state based on block.
 
-#if defined(__clang__) && !defined(__APPLE__)
+#if defined(__clang__) && defined(__has_attribute) && __has_attribute(no_sanitize)
 __attribute__((no_sanitize("unsigned-integer-overflow")))
 #endif
 void dng_md5_printer::MD5Transform (uint32 state [4],

@@ -248,7 +248,7 @@ void dng_gain_map_interpolator::ResetColumn ()
 
 /*****************************************************************************/
 
-#if defined(__clang__) && !defined(__APPLE__)
+#if defined(__clang__) && defined(__has_attribute) && __has_attribute(no_sanitize)
 __attribute__((no_sanitize("unsigned-integer-overflow")))
 #endif
 dng_gain_map::dng_gain_map (dng_memory_allocator &allocator,
