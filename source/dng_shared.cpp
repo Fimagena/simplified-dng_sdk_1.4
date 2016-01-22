@@ -96,8 +96,10 @@ dng_camera_profile_info::~dng_camera_profile_info ()
 							 		 
 /*****************************************************************************/
 
-#if defined(__clang__) && defined(__has_attribute) && __has_attribute(no_sanitize)
+#if defined(__clang__) && defined(__has_attribute) 
+#if __has_attribute(no_sanitize)
 __attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
 #endif
 bool dng_camera_profile_info::ParseTag (dng_stream &stream,
 										uint32 parentCode,

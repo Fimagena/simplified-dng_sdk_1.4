@@ -407,8 +407,10 @@ bool dng_info::ValidateIFD (dng_stream &stream,
 
 /*****************************************************************************/
 
-#if defined(__clang__) && defined(__has_attribute) && __has_attribute(no_sanitize)
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
 __attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
 #endif
 void dng_info::ParseIFD (dng_host &host,
 						 dng_stream &stream,

@@ -226,8 +226,10 @@ class dng_md5_printer
 			
 		// FF, GG, HH, and II transformations for rounds 1, 2, 3, and 4.
 	
-#if defined(__clang__) && defined(__has_attribute) && __has_attribute(no_sanitize)
+#if defined(__clang__) && defined(__has_attribute) 
+#if __has_attribute(no_sanitize)
 		__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
 #endif
 		static inline void FF (uint32 &a,
 							   uint32 b,
@@ -242,8 +244,10 @@ class dng_md5_printer
 			a += b;
 			}
 
-#if defined(__clang__) && defined(__has_attribute) && __has_attribute(no_sanitize)
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
 		__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
 #endif
 		static inline void GG (uint32 &a,
 							   uint32 b,
@@ -258,8 +262,10 @@ class dng_md5_printer
 			a += b;
 			}
 
-#if defined(__clang__) && defined(__has_attribute) && __has_attribute(no_sanitize)
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
 		__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
 #endif
 		static inline void HH (uint32 &a,
 							   uint32 b,
@@ -274,8 +280,10 @@ class dng_md5_printer
 			a += b;
 			}
 
-#if defined(__clang__) && defined(__has_attribute) && __has_attribute(no_sanitize)
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
 		__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
 #endif
 		static inline void II (uint32 &a,
 							   uint32 b,

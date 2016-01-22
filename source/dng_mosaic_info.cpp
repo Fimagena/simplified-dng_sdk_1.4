@@ -286,17 +286,21 @@ class dng_bilinear_pattern
 		
 	private:
 	
-#if defined(__clang__) && defined(__has_attribute) && __has_attribute(no_sanitize)
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
 __attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
 #endif
 		uint32 DeltaRow (uint32 row, int32 delta)
 			{
 			return (row + fPatRows + (uint32) delta) % fPatRows;
 			}
 		
-#if defined(__clang__) && defined(__has_attribute) && __has_attribute(no_sanitize)
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
 __attribute__((no_sanitize("unsigned-integer-overflow")))
 #endif	
+#endif
 		uint32 DeltaCol (uint32 col, int32 delta)
 			{
 			return (col + fPatCols + (uint32) delta) % fPatCols;

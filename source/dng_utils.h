@@ -28,8 +28,10 @@
 
 // The unsigned integer overflow is intended here since a wrap around is used to
 // calculate the abs() in the branchless version.
-#if defined(__clang__) && defined(__has_attribute) && __has_attribute(no_sanitize)
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
 __attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
 #endif
 inline uint32 Abs_int32 (int32 x)
 	{
@@ -486,8 +488,10 @@ inline uint32 Floor_uint32 (real32 x)
 	
 	}
 
-#if defined(__clang__) && defined(__has_attribute) && __has_attribute(no_sanitize)
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
 __attribute__((no_sanitize("float-cast-overflow")))
+#endif
 #endif
 inline uint32 Floor_uint32 (real64 x)
 	{
