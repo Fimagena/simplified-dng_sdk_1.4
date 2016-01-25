@@ -34,13 +34,17 @@ dng_function_exposure_ramp::dng_function_exposure_ramp (real64 white,
 														real64 black,
 														real64 minBlack)
 									
-	:	fSlope ((white == black) ? 1.0f : 1.0 / (white - black))
+	:	fSlope ((white == black) ? 0.0f : 1.0 / (white - black))
 	,	fBlack (black)
 	
 	,	fRadius (0.0)
 	,	fQScale (0.0)
 	
 	{
+	if (fSlope == 0.0)
+		{
+		 ThrowBadFormat ();
+		}
 	
 	const real64 kMaxCurveX = 0.5;			// Fraction of minBlack.
 	
