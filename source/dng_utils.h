@@ -1142,8 +1142,10 @@ inline int32 Mulsh86 (int32 x, int32 y)
 // This is the ACM standard 30 bit generator:
 // x' = (x * 16807) mod 2^31-1
 
-#if defined(__clang__) && !defined(__APPLE__)
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
 __attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
 #endif
 inline uint32 DNG_Random (uint32 seed)
 	{
