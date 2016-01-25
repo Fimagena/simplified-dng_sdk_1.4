@@ -83,6 +83,8 @@ LOCAL_SANITIZE := unsigned-integer-overflow signed-integer-overflow
 
 LOCAL_SHARED_LIBRARIES := libz libjpeg
 
+LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH)/source
+
 include $(BUILD_SHARED_LIBRARY)
 
 # dng sdk unittests for target
