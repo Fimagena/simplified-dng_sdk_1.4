@@ -97,6 +97,11 @@ dng_hue_sat_map::~dng_hue_sat_map ()
 
 /*****************************************************************************/
 
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
+__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
+#endif
 void dng_hue_sat_map::SetDivisions (uint32 hueDivisions,
 									uint32 satDivisions,
 									uint32 valDivisions)

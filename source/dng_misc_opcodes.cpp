@@ -201,6 +201,11 @@ void dng_area_spec::PutData (dng_stream &stream) const
 
 /*****************************************************************************/
 
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
+__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
+#endif
 dng_rect dng_area_spec::Overlap (const dng_rect &tile) const
 	{
 	
@@ -463,6 +468,11 @@ dng_opcode_MapPolynomial::dng_opcode_MapPolynomial (const dng_area_spec &areaSpe
 
 /*****************************************************************************/
 
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
+__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
+#endif
 dng_opcode_MapPolynomial::dng_opcode_MapPolynomial (dng_stream &stream)
 
 	:	dng_inplace_opcode (dngOpcode_MapPolynomial,

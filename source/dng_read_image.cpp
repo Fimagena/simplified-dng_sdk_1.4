@@ -1171,6 +1171,11 @@ dng_read_image::~dng_read_image ()
 
 /*****************************************************************************/
 
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
+__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
+#endif
 bool dng_read_image::ReadUncompressed (dng_host &host,
 									   const dng_ifd &ifd,
 									   dng_stream &stream,
@@ -1392,7 +1397,7 @@ bool dng_read_image::ReadUncompressed (dng_host &host,
 		
 		uint32 *p = (uint32 *) uncompressedBuffer->Buffer ();
 			
-		uint32 bitMask = (1 << bitDepth) - 1;
+		uint32 bitMask = ((uint32)1 << bitDepth) - 1;
 							
 		for (uint32 row = 0; row < rows; row++)
 			{
@@ -1804,6 +1809,11 @@ bool dng_read_image::ReadBaselineJPEG (dng_host &host,
 	
 /*****************************************************************************/
 
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
+__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
+#endif
 bool dng_read_image::ReadLosslessJPEG (dng_host &host,
 									   const dng_ifd &ifd,
 									   dng_stream &stream,

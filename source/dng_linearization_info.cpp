@@ -687,7 +687,7 @@ void dng_linearize_plane::Process (const dng_rect &srcTile)
 				
 			uint16 *dstPtr = (uint16 *) dPtr;
 
-			b1 -= 128;		// Rounding for 8 bit shift
+			b1 = (int32) ((int64) b1 - (int64) 128);		// Rounding for 8 bit shift
 			
 			if (fSrcPixelType == ttByte)
 				{
@@ -735,7 +735,7 @@ void dng_linearize_plane::Process (const dng_rect &srcTile)
 					if (b2_count)
 						{
 					
-						x -= b2 [b2_phase];
+						x = (int32) ((int64)x - b2 [b2_phase]);
 						
 						if (++b2_phase == b2_count)
 							{

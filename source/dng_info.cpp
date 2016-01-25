@@ -334,6 +334,11 @@ void dng_info::ParseTag (dng_host &host,
 
 /*****************************************************************************/
 
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
+__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
+#endif
 bool dng_info::ValidateIFD (dng_stream &stream,
 						    uint64 ifdOffset,
 						    int64 offsetDelta)
@@ -657,6 +662,11 @@ void dng_info::ParseIFD (dng_host &host,
 						 
 /*****************************************************************************/
 
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
+__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
+#endif
 bool dng_info::ParseMakerNoteIFD (dng_host &host,
 								  dng_stream &stream,
 								  uint64 ifdSize,
@@ -1417,6 +1427,11 @@ void dng_info::ParseSonyPrivateData (dng_host & /* host */,
 							   		 
 /*****************************************************************************/
 
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
+__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
+#endif
 void dng_info::ParseDNGPrivateData (dng_host &host,
 									dng_stream &stream)
 	{

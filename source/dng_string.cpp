@@ -901,6 +901,11 @@ void dng_string::Set_JIS_X208_1990 (const char *s)
 
 /*****************************************************************************/
 
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
+__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
+#endif
 uint32 dng_string::DecodeUTF8 (const char *&s,
 							   uint32 maxBytes,
 							   bool *isValid)

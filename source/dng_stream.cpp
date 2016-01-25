@@ -900,12 +900,14 @@ dng_urational dng_stream::TagValue_urational (uint32 tagType)
 			
 				if (d < 0)
 					{
-					n = -n;
-					d = -d;
+					result.n = (uint32) ((int64) n * -1);
+					result.d = (uint32) ((int64) d * -1);
 					}
-					
-				result.n = (uint32) n;
-				result.d = (uint32) d;
+				else
+					{
+					result.n = (uint32) n;
+					result.d = (uint32) d;
+					}
 					
 				}
 				

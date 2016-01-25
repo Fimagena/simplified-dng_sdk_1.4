@@ -4158,6 +4158,11 @@ void dng_negative::DoBuildStage3 (dng_host &host,
 									   
 /*****************************************************************************/
 
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
+__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
+#endif
 void dng_negative::BuildStage3Image (dng_host &host,
 									 int32 srcPlane)
 	{

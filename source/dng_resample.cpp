@@ -542,8 +542,8 @@ dng_resample_task::dng_resample_task (const dng_image &srcImage,
 	
 	,	fKernel (kernel)
 	
-	,	fRowScale (dstBounds.H () / (real64) srcBounds.H ())
-	,	fColScale (dstBounds.W () / (real64) srcBounds.W ())
+	,	fRowScale ((srcBounds.H () != 0) ? dstBounds.H () / (real64) srcBounds.H () : 0)
+	,	fColScale ((srcBounds.W () != 0) ? dstBounds.W () / (real64) srcBounds.W () : 0)
 	
 	,	fRowCoords ()
 	,	fColCoords ()
@@ -554,6 +554,10 @@ dng_resample_task::dng_resample_task (const dng_image &srcImage,
 	,	fSrcTileSize ()
 	
 	{
+	if (fRowScale == 0 || fColScale == 0)
+		{
+		 ThrowBadFormat ();
+		}
 	
 	if (srcImage.PixelSize  () <= 2 &&
 		dstImage.PixelSize  () <= 2 &&

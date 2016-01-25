@@ -1111,6 +1111,11 @@ void dng_filter_warp::Initialize (dng_host &host)
 
 /*****************************************************************************/
 	
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
+__attribute__((no_sanitize("float-cast-overflow")))
+#endif
+#endif
 dng_rect dng_filter_warp::SrcArea (const dng_rect &dstArea)
 	{
 	
@@ -1201,13 +1206,13 @@ dng_rect dng_filter_warp::SrcArea (const dng_rect &dstArea)
 
 	const int32 pad = (int32) fWeights.Radius ();
 
-	xMin -= pad;
-	yMin -= pad;
-	xMax += pad;
-	yMax += pad;
+	xMin = (int32) ((int64) xMin - (int64)pad);
+	yMin = (int32) ((int64) yMin - (int64)pad);
+	xMax = (int32) ((int64) xMax + (int64)pad);
+	yMax = (int32) ((int64) yMax + (int64)pad);
 
-	xMax += 1;
-	yMax += 1;
+	xMax = (int32) ((int64) xMax + 1);
+	yMax = (int32) ((int64) yMax + 1);
 
 	const dng_rect srcArea (yMin,
 							xMin,
@@ -1220,6 +1225,11 @@ dng_rect dng_filter_warp::SrcArea (const dng_rect &dstArea)
 
 /*****************************************************************************/
 
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
+__attribute__((no_sanitize("float-cast-overflow")))
+#endif
+#endif
 dng_point dng_filter_warp::SrcTileSize (const dng_point &dstTileSize)
 	{
 
@@ -1280,8 +1290,8 @@ dng_point dng_filter_warp::SrcTileSize (const dng_point &dstTileSize)
 
 	// Add the two bounds together.
 
-	srcTileSize.v += (int32) ceil (srcTanGap.v * fNormRadius);
-	srcTileSize.h += (int32) ceil (srcTanGap.h * fNormRadius);
+	srcTileSize.v = (int32) ((real64) srcTileSize.v + (real64) ceil (srcTanGap.v * fNormRadius));
+	srcTileSize.h = (int32) ((real64) srcTileSize.h + (real64) ceil (srcTanGap.h * fNormRadius));
 	
 	return srcTileSize;
 
@@ -1289,6 +1299,11 @@ dng_point dng_filter_warp::SrcTileSize (const dng_point &dstTileSize)
 
 /*****************************************************************************/
 		
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
+__attribute__((no_sanitize("float-cast-overflow")))
+#endif
+#endif
 void dng_filter_warp::ProcessArea (uint32 /* threadIndex */,
 								   dng_pixel_buffer &srcBuffer,
 								   dng_pixel_buffer &dstBuffer)

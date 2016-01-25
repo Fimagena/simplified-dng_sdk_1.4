@@ -109,6 +109,11 @@ class dng_point_real64
 
 /*****************************************************************************/
 
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
+__attribute__((no_sanitize("signed-integer-overflow")))
+#endif
+#endif
 inline dng_point operator+ (const dng_point &a,
 				  			const dng_point &b)
 				  
