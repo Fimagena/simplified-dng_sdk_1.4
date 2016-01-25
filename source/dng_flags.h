@@ -131,7 +131,7 @@
 #elif defined(__BIG_ENDIAN__)
 #define qDNGBigEndian 1
 
-#elif defined(_ARM_)
+#elif defined(_ARM_) || defined(__ARM_NEON) || defined(__mips__)
 #define qDNGBigEndian 0
 
 #else
