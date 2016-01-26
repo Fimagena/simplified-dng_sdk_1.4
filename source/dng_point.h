@@ -19,6 +19,7 @@
 /*****************************************************************************/
 
 #include "dng_types.h"
+#include "dng_safe_arithmetic.h"
 #include "dng_utils.h"
 
 /*****************************************************************************/
@@ -109,19 +110,14 @@ class dng_point_real64
 
 /*****************************************************************************/
 
-#if defined(__clang__) && defined(__has_attribute)
-#if __has_attribute(no_sanitize)
-__attribute__((no_sanitize("signed-integer-overflow")))
-#endif
-#endif
 inline dng_point operator+ (const dng_point &a,
 				  			const dng_point &b)
 				  
 				  
 	{
 	
-	return dng_point (a.v + b.v,
-					  a.h + b.h);
+	return dng_point (SafeInt32Add(a.v, b.v),
+					  SafeInt32Add(a.h, b.h));
 					  
 	}
 
@@ -146,8 +142,8 @@ inline dng_point operator- (const dng_point &a,
 				  
 	{
 	
-	return dng_point (a.v - b.v,
-					  a.h - b.h);
+	return dng_point (SafeInt32Sub(a.v, b.v),
+					  SafeInt32Sub(a.h, b.h));
 					  
 	}
 
