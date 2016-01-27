@@ -97,8 +97,10 @@ typedef double real64;
 /*****************************************************************************/
 
 // Visual Studio now prefers _hypot to hypot
+// Note: since Visual Studio 2010, there is a definition of hypot (in math.h),
+// we only define hypot here for the older Visual Studio versions.
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && _MSC_VER < 1600
 
 #ifdef hypot
 #undef hypot
