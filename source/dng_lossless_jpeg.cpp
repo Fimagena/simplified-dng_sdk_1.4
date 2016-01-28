@@ -1678,17 +1678,12 @@ inline int32 dng_lossless_decoder::HuffDecode (HuffmanTable *htbl)
  *--------------------------------------------------------------
  */
 
-#if defined(__clang__) && defined(__has_attribute)
-#if __has_attribute(no_sanitize)
-__attribute__((no_sanitize("undefined")))
-#endif
-#endif
 inline void dng_lossless_decoder::HuffExtend (int32 &x, int32 s)
 	{
 	
 	if (x < (0x08000 >> (16 - s)))
 		{
-		x += (-1 << s) + 1;
+		x += -(1 << s) + 1;
 		}
 
 	}
