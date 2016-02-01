@@ -171,7 +171,7 @@ dng_malloc_block::dng_malloc_block (uint32 logicalSize)
 	
 	{
 
-#if qLinux && !defined(__ARM_NEON) && !defined(__mips__) && !defined(NO_POSIX_MEMALIGN)
+#if (qLinux && !defined(__ANDROID_API__)) || (defined(__ANDROID_API__) && __ANDROID_API__ >= 17)
 
 	int err = ::posix_memalign( (void **) &fMalloc, 16, (size_t) PhysicalSize() );
 
