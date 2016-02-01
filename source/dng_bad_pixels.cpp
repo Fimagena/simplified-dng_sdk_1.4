@@ -20,6 +20,7 @@
 #include "dng_host.h"
 #include "dng_image.h"
 #include "dng_negative.h"
+#include "dng_safe_arithmetic.h"
 
 #include <algorithm>
 
@@ -589,11 +590,6 @@ dng_opcode_FixBadPixelsList::dng_opcode_FixBadPixelsList
 	
 /*****************************************************************************/
 
-#if defined(__clang__) && defined(__has_attribute)
-#if __has_attribute(no_sanitize)
-__attribute__((no_sanitize("unsigned-integer-overflow")))
-#endif
-#endif
 dng_opcode_FixBadPixelsList::dng_opcode_FixBadPixelsList (dng_stream &stream)
 
 	:	dng_filter_opcode (dngOpcode_FixBadPixelsList,
@@ -612,8 +608,9 @@ dng_opcode_FixBadPixelsList::dng_opcode_FixBadPixelsList (dng_stream &stream)
 	
 	uint32 pCount = stream.Get_uint32 ();
 	uint32 rCount = stream.Get_uint32 ();
-	
-	if (size != 12 + pCount * 8 + rCount * 16)
+	uint32 expectedSize =
+	SafeUint32Add(12, SafeUint32Add(SafeUint32Mult(pCount, 8), SafeUint32Mult(rCount, 16)));
+	if (size != expectedSize)
 		{
 		ThrowBadFormat ();
 		}
