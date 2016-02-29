@@ -45,7 +45,7 @@ dng_function_exposure_ramp::dng_function_exposure_ramp (real64 white,
 		{
 		 ThrowBadFormat ();
 		}
-	
+
 	const real64 kMaxCurveX = 0.5;			// Fraction of minBlack.
 	
 	const real64 kMaxCurveY = 1.0 / 16.0;	// Fraction of white.

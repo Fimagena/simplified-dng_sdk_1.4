@@ -193,7 +193,7 @@ class AutoArray
 		/// Construct an AutoArray that refers to a null pointer.
 
 		AutoArray () { }
-
+		
 		/// Construct an AutoArray containing 'count' elements, which are
 		/// default-constructed. If an out-of-memory condition occurs, a
 		/// dng_exception with error code dng_error_memory is thrown.

@@ -250,7 +250,7 @@ class dng_resample_weights_2d
 				}
 			
 			const uint32 offset = fract.v * fRowStep + fract.h * fColStep;
-
+			
 			return fWeights32->Buffer_real32 () + offset;
 			
 			}

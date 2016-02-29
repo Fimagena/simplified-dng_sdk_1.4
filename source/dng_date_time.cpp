@@ -103,11 +103,6 @@ void dng_date_time::Clear ()
 			
 /*****************************************************************************/
 
-#if defined(__clang__) && defined(__has_attribute)
-#if __has_attribute(no_sanitize)
-__attribute__((no_sanitize("unsigned-integer-overflow")))
-#endif
-#endif
 static uint32 DateTimeParseU32 (const char *&s)
 	{
 	
@@ -118,7 +113,8 @@ static uint32 DateTimeParseU32 (const char *&s)
 		
 	while (*s >= '0' && *s <= '9')
 		{
-		x = x * 10 + (uint32) (*(s++) - '0');
+		x = SafeUint32Mult(x, 10);
+		x = SafeUint32Add(x, (uint32) (*(s++) - '0'));
 		}
 		
 	return x;

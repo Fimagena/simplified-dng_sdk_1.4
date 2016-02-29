@@ -275,7 +275,7 @@ dng_exif * dng_host::Make_dng_exif ()
 
 dng_xmp * dng_host::Make_dng_xmp ()
 	{
-	
+		
 	dng_xmp *result = new dng_xmp (Allocator ());
 	
 	if (!result)

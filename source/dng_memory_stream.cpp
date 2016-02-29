@@ -121,7 +121,7 @@ void dng_memory_stream::DoSetLength (uint64 length)
 		
 		if (fPageCount == fPagesAllocated)
 			{
-
+			
 			uint32 newSizeTemp1 = 0, newSizeTemp2 = 0;
 			if (!SafeUint32Add (fPagesAllocated, 32u, &newSizeTemp1) ||
 				!SafeUint32Mult (fPagesAllocated, 2u, &newSizeTemp2))
@@ -135,10 +135,10 @@ void dng_memory_stream::DoSetLength (uint64 length)
 				{
 				ThrowMemoryFull ("Arithmetic overflow in DoSetLength()");
 				}
-
+			
 			dng_memory_block **list = (dng_memory_block **) malloc (numBytes);
-
-					if (!list)
+			
+			if (!list)
 				{
 				
 				ThrowMemoryFull ();

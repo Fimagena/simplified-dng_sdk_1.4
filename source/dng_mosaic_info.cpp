@@ -293,17 +293,21 @@ __attribute__((no_sanitize("unsigned-integer-overflow")))
 #endif
 		uint32 DeltaRow (uint32 row, int32 delta)
 			{
-			return (row + fPatRows + (uint32) delta) % fPatRows;
+			// Potential overflow in the conversion from delta to a uint32 as
+			// well as in the subsequent addition is intentional.
+			return (SafeUint32Add(row, fPatRows) + (uint32) delta) % fPatRows;
 			}
-		
+			
 #if defined(__clang__) && defined(__has_attribute)
 #if __has_attribute(no_sanitize)
 __attribute__((no_sanitize("unsigned-integer-overflow")))
-#endif	
+#endif
 #endif
 		uint32 DeltaCol (uint32 col, int32 delta)
 			{
-			return (col + fPatCols + (uint32) delta) % fPatCols;
+			// Potential overflow in the conversion from delta to a uint32 as
+			// well as in the subsequent addition is intentional.
+			return (SafeUint32Add(col, fPatCols) + (uint32) delta) % fPatCols;
 			}
 	
 		real32 LinearWeight1 (int32 d1, int32 d2)
