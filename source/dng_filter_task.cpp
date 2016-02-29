@@ -62,12 +62,12 @@ void dng_filter_task::Start (uint32 threadCount,
 	{
 	
 	fSrcTileSize = SrcTileSize (tileSize);
-	
+		
 		uint32 srcBufferSize = ComputeBufferSize(fSrcPixelType, fSrcTileSize,
 												 fSrcPlanes, pad16Bytes);
 		uint32 dstBufferSize = ComputeBufferSize(fDstPixelType, tileSize,
 												 fDstPlanes, pad16Bytes);
-						   
+		
 		for (uint32 threadIndex = 0; threadIndex < threadCount; threadIndex++)
 		{
 		
@@ -95,20 +95,20 @@ void dng_filter_task::Process (uint32 threadIndex,
 	{
 	
 	// Find source area for this destination area.
-
+	
 	dng_rect srcArea = SrcArea (area);
-					  
+	
 	int32 src_area_w;
 	int32 src_area_h;
 	if (!ConvertUint32ToInt32 (srcArea.W (), &src_area_w) || !ConvertUint32ToInt32 (srcArea.H (), &src_area_h) || src_area_w > fSrcTileSize.h || src_area_h > fSrcTileSize.v)
 		{
-	
-		ThrowMemoryFull("Area exceeds tile size.");
-	
-		}
-	
-	// Setup srcBuffer.
 		
+		ThrowMemoryFull("Area exceeds tile size.");
+		
+		}
+					  
+	// Setup srcBuffer.
+	
 	dng_pixel_buffer srcBuffer(srcArea, fSrcPlane, fSrcPlanes, fSrcPixelType,
 							   pcRowInterleavedAlign16,
 							   fSrcBuffer [threadIndex]->Buffer ());

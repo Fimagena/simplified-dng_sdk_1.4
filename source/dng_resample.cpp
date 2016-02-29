@@ -310,7 +310,7 @@ dng_resample_weights_2d::~dng_resample_weights_2d ()
 void dng_resample_weights_2d::Initialize (const dng_resample_function &kernel,
 										  dng_memory_allocator &allocator)
 	{
-
+	
 	// Find radius of this kernel. Unlike with 1d resample weights (see
 	// dng_resample_weights), we never scale up the kernel size.
 	
@@ -326,12 +326,12 @@ void dng_resample_weights_2d::Initialize (const dng_resample_function &kernel,
 		 !SafeUint32Mult (width, width, &widthSqr) ||
 		 !RoundUpUint32ToMultiple (widthSqr, 8, &step) ||
 		 !SafeUint32Mult (step, kResampleSubsampleCount2D, &fRowStep))
-                {
-
-                ThrowMemoryFull ("Arithmetic overflow computing row step.");
+			{
+			
+			ThrowMemoryFull ("Arithmetic overflow computing row step.");
+			
+			}
 	
-                }
-
 	fColStep = step;
 	
 	// Allocate and zero weight tables.
@@ -354,13 +354,13 @@ void dng_resample_weights_2d::Initialize (const dng_resample_function &kernel,
 				 
 	
 	if (!SafeUint32Mult (step, kResampleSubsampleCount2D, &bufferSize) ||
-                 !SafeUint32Mult (bufferSize, kResampleSubsampleCount2D, &bufferSize) ||
-                 !SafeUint32Mult (bufferSize, (uint32) sizeof (int16), &bufferSize))
-                {
-
-                ThrowMemoryFull ("Arithmetic overflow computing buffer size.");
-
-                }
+		 !SafeUint32Mult (bufferSize, kResampleSubsampleCount2D, &bufferSize) ||
+		 !SafeUint32Mult (bufferSize, (uint32) sizeof (int16), &bufferSize))
+		{
+		
+		ThrowMemoryFull ("Arithmetic overflow computing buffer size.");
+		
+		}
 	
 	fWeights16.Reset (allocator.Allocate (bufferSize));
 									  
@@ -557,7 +557,7 @@ dng_resample_task::dng_resample_task (const dng_image &srcImage,
 	if (fRowScale == 0 || fColScale == 0)
 		{
 		 ThrowBadFormat ();
-		}
+	}
 	
 	if (srcImage.PixelSize  () <= 2 &&
 		dstImage.PixelSize  () <= 2 &&
@@ -587,11 +587,6 @@ dng_resample_task::dng_resample_task (const dng_image &srcImage,
 							
 /*****************************************************************************/
 
-#if defined(__clang__) && defined(__has_attribute)
-#if __has_attribute(no_sanitize)
-__attribute__((no_sanitize("unsigned-integer-overflow")))
-#endif
-#endif
 dng_rect dng_resample_task::SrcArea (const dng_rect &dstArea)
 	{
 	
@@ -603,11 +598,17 @@ dng_rect dng_resample_task::SrcArea (const dng_rect &dstArea)
 	
 	dng_rect srcArea;
 	
-	srcArea.t = fRowCoords.Pixel (dstArea.t) + offsetV;
-	srcArea.l = fColCoords.Pixel (dstArea.l) + offsetH;
+	srcArea.t = SafeInt32Add (fRowCoords.Pixel (dstArea.t), offsetV);
+	srcArea.l = SafeInt32Add (fColCoords.Pixel (dstArea.l), offsetH);
 
-	srcArea.b = fRowCoords.Pixel (dstArea.b - 1) + offsetV + widthV;
-	srcArea.r = fColCoords.Pixel (dstArea.r - 1) + offsetH + widthH;
+	srcArea.b = SafeInt32Add (SafeInt32Add (
+						fRowCoords.Pixel (SafeInt32Sub (dstArea.b, 1)),
+						offsetV),
+					ConvertUint32ToInt32 (widthV));;
+	srcArea.r = SafeInt32Add(SafeInt32Add(
+						fColCoords.Pixel (SafeInt32Sub (dstArea.r, 1)),
+						offsetH),
+					ConvertUint32ToInt32(widthH));;
 	
 	return srcArea;
 	
@@ -629,6 +630,7 @@ void dng_resample_task::Start (uint32 threadCount,
 							   dng_memory_allocator *allocator,
 							   dng_abort_sniffer *sniffer)
 	{
+	
 	// Compute sub-pixel resolution coordinates in the source image for
 	// each row and column of the destination area.
 	

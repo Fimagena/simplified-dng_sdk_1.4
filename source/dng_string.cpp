@@ -86,6 +86,11 @@ static void CheckSpaceLeftInBuffer(const T *currentPos,
 // to the following Mac-OS- and Windows-specific functions. Calls to
 // ThrowNotHardened() have been added to these functions to alert callers of
 // this fact.
+//
+// If you're trying to use a function that calls ThrowNotHardened(), you need to
+// fix the security issues noted in the comment next to the ThrowNotHardened()
+// call. Once you have fixed these issues, obtain a security review for the
+// fixes. This may require fuzzing of the modified code on the target platform.
 static void ThrowNotHardened()
 	{
 	ThrowProgramError ("This function has not been security-hardened");
@@ -97,6 +102,7 @@ static void ThrowNotHardened()
 static uint32 Extract_SystemEncoding (const dng_string &dngString,
 							   		  dng_memory_data &buffer)
 	{
+		// TODO: Needs implementation.
 		ThrowProgramError ("Extract_SystemEncoding() not implemented on iOS");
 		return 0;
 	}
@@ -104,6 +110,7 @@ static uint32 Extract_SystemEncoding (const dng_string &dngString,
 static void Assign_SystemEncoding (dng_string &dngString,
 							       const char *otherString)
 	{
+		// TODO: Needs implementation.
 		ThrowProgramError ("Assign_SystemEncoding() not implemented on iOS");
 
 	}
@@ -111,6 +118,7 @@ static void Assign_SystemEncoding (dng_string &dngString,
 static void Assign_JIS_X208_1990 (dng_string &dngString,
 							      const char *otherString)
 	{
+		// TODO: Needs implementation.
 		ThrowProgramError ("Assign_JIS_X208_1990() not implemented on iOS");
 	}
 
@@ -128,7 +136,7 @@ static void Assign_Multibyte (dng_string &dngString,
 	// - The computation of aBufSize and the subsequent addition of 1 in the
 	//   call to the dng_memory_data constructor may wrap around.
 	ThrowNotHardened();
-
+	
 	uint32 aSize = (uint32) strlen (otherString);
 	
 	if (aSize > 0)
@@ -901,11 +909,6 @@ void dng_string::Set_JIS_X208_1990 (const char *s)
 
 /*****************************************************************************/
 
-#if defined(__clang__) && defined(__has_attribute)
-#if __has_attribute(no_sanitize)
-__attribute__((no_sanitize("unsigned-integer-overflow")))
-#endif
-#endif
 uint32 dng_string::DecodeUTF8 (const char *&s,
 							   uint32 maxBytes,
 							   bool *isValid)
@@ -920,7 +923,7 @@ uint32 dng_string::DecodeUTF8 (const char *&s,
 		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 		2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
-		3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,5,5,5,5,6,6,6,6
+		3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,5,5,5,5,6,6,0,0
 		};
 		
 	if (isValid)
@@ -2182,6 +2185,7 @@ int32 dng_string::Compare (const dng_string &s) const
 	#if qMacOS
 	#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
 	
+		// TODO: Needs implementation.
 		ThrowProgramError ("Compare() not implemented on iOS");
 		return 0;
 		
@@ -2272,6 +2276,7 @@ int32 dng_string::Compare (const dng_string &s) const
 		}
 	
 	#endif  // TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+
 	#elif qWinOS
 	
 		{
