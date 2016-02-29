@@ -409,6 +409,7 @@ void dng_color_spec::SetWhiteXY (const dng_xy_coord &white)
 	// Find the camera white values.
 	
 	fCameraWhite = colorMatrix * XYtoXYZ (fWhiteXY);
+
 	real64 cameraWhiteMaxEntry = MaxEntry (fCameraWhite);
 	if (cameraWhiteMaxEntry == 0)
 		{
@@ -433,7 +434,7 @@ void dng_color_spec::SetWhiteXY (const dng_xy_coord &white)
 	fPCStoCamera = colorMatrix * MapWhiteMatrix (PCStoXY (), fWhiteXY);
 		
 	real64 scale = MaxEntry (fPCStoCamera * PCStoXYZ ());
-	
+
 	if (scale == 0)
 		{
 		 ThrowBadFormat ();

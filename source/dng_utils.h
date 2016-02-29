@@ -225,7 +225,7 @@ inline bool RoundUpForPixelSize (uint32 x, uint32 pixelSize, uint32 *result)
 		default:
 			multiple = 16;
 			break;
-					
+		
 		}
 	
 	return RoundUpUint32ToMultiple(x, multiple, result);
@@ -467,11 +467,6 @@ inline real64 Lerp_real64 (real64 a, real64 b, real64 t)
 
 /*****************************************************************************/
 
-#if defined(__clang__) && defined(__has_attribute)
-#if __has_attribute(no_sanitize)
-__attribute__((no_sanitize("float-cast-overflow")))
-#endif
-#endif
 inline int32 Round_int32 (real32 x)
 	{
 	
@@ -482,7 +477,21 @@ inline int32 Round_int32 (real32 x)
 inline int32 Round_int32 (real64 x)
 	{
 	
-	return (int32) (x > 0.0 ? x + 0.5 : x - 0.5);
+	const real64 temp = x > 0.0 ? x + 0.5 : x - 0.5;
+	
+	// NaNs will fail this test (because NaNs compare false against
+	// everything) and will therefore also take the else branch.
+	if (temp > real64(INT32_MIN) - 1.0 && temp < real64(INT32_MAX) + 1.0)
+		{
+		return (int32) temp;
+		}
+	
+	else
+		{
+		ThrowProgramError("Overflow in Round_int32");
+		// Dummy return.
+		return 0;
+		}
 	
 	}
 
@@ -493,15 +502,24 @@ inline uint32 Floor_uint32 (real32 x)
 	
 	}
 
-#if defined(__clang__) && defined(__has_attribute)
-#if __has_attribute(no_sanitize)
-__attribute__((no_sanitize("float-cast-overflow")))
-#endif
-#endif
 inline uint32 Floor_uint32 (real64 x)
 	{
 	
-	return (uint32) Max_real64 (0.0, x);
+	const real64 temp = Max_real64 (0.0, x);
+	
+	// NaNs will fail this test (because NaNs compare false against
+	// everything) and will therefore also take the else branch.
+	if (temp < real64(UINT32_MAX) + 1.0)
+		{
+		return (uint32) temp;
+		}
+	
+	else
+		{
+		ThrowProgramError("Overflow in Floor_uint32");
+		// Dummy return.
+		return 0;
+		}
 	
 	}
 
@@ -1146,7 +1164,8 @@ inline int32 Mulsh86 (int32 x, int32 y)
 
 // This is the ACM standard 30 bit generator:
 // x' = (x * 16807) mod 2^31-1
-
+// This function intentionally exploits the defined behavior of unsigned integer
+// overflow.
 #if defined(__clang__) && defined(__has_attribute)
 #if __has_attribute(no_sanitize)
 __attribute__((no_sanitize("unsigned-integer-overflow")))

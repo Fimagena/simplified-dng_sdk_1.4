@@ -171,6 +171,7 @@ uint32 ComputeBufferSize(uint32 pixelType, const dng_point &tileSize,
 						 uint32 numPlanes, PaddingType paddingType)
 
 {
+	
 	// Convert tile size to uint32.
 	if (tileSize.h < 0 || tileSize.v < 0)
 		{
@@ -311,7 +312,7 @@ real64 TickCountInSeconds ()
 	// TODO: Needs implementation.
 	ThrowProgramError ("TickCountInSeconds() not implemented on iOS");
 	return 0;
-	#else
+	#else	
 	return TickCount () * (1.0 / 60.0);
 	#endif  // TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
 	

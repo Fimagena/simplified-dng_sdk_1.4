@@ -29,6 +29,7 @@
 #include "dng_safe_arithmetic.h"
 #include "dng_sdk_limits.h"
 #include "dng_tag_values.h"
+#include "dng_utils.h"
 
 /*****************************************************************************/
 
@@ -1111,11 +1112,6 @@ void dng_filter_warp::Initialize (dng_host &host)
 
 /*****************************************************************************/
 	
-#if defined(__clang__) && defined(__has_attribute)
-#if __has_attribute(no_sanitize)
-__attribute__((no_sanitize("float-cast-overflow")))
-#endif
-#endif
 dng_rect dng_filter_warp::SrcArea (const dng_rect &dstArea)
 	{
 	
@@ -1143,7 +1139,7 @@ dng_rect dng_filter_warp::SrcArea (const dng_rect &dstArea)
 
 				const dng_point_real64 src = GetSrcPixelPosition (dst, plane);
 
-				const int32 y = (int32) floor (src.v);
+				const int32 y = ConvertDoubleToInt32 (floor (src.v));
 				
 				yMin = Min_int32 (yMin, y);
 
@@ -1157,7 +1153,7 @@ dng_rect dng_filter_warp::SrcArea (const dng_rect &dstArea)
 
 				const dng_point_real64 src = GetSrcPixelPosition (dst, plane);
 
-				const int32 y = (int32) ceil (src.v);
+				const int32 y = ConvertDoubleToInt32 (ceil (src.v));
 				
 				yMax = Max_int32 (yMax, y);
 				
@@ -1178,7 +1174,7 @@ dng_rect dng_filter_warp::SrcArea (const dng_rect &dstArea)
 
 				const dng_point_real64 src = GetSrcPixelPosition (dst, plane);
 
-				const int32 x = (int32) floor (src.h);
+				const int32 x = ConvertDoubleToInt32 (floor (src.h));
 				
 				xMin = Min_int32 (xMin, x);
 
@@ -1192,7 +1188,7 @@ dng_rect dng_filter_warp::SrcArea (const dng_rect &dstArea)
 
 				const dng_point_real64 src = GetSrcPixelPosition (dst, plane);
 
-				const int32 x = (int32) ceil (src.h);
+				const int32 x = ConvertDoubleToInt32 (ceil (src.h));
 				
 				xMax = Max_int32 (xMax, x);
 
@@ -1204,15 +1200,15 @@ dng_rect dng_filter_warp::SrcArea (const dng_rect &dstArea)
 
 	// Pad each side by filter radius.
 
-	const int32 pad = (int32) fWeights.Radius ();
+	const int32 pad = ConvertUint32ToInt32(fWeights.Radius());
 
-	xMin = (int32) ((int64) xMin - (int64)pad);
-	yMin = (int32) ((int64) yMin - (int64)pad);
-	xMax = (int32) ((int64) xMax + (int64)pad);
-	yMax = (int32) ((int64) yMax + (int64)pad);
+	xMin = SafeInt32Sub(xMin, pad);
+	yMin = SafeInt32Sub(yMin, pad);
+	xMax = SafeInt32Add(xMax, pad);
+	yMax = SafeInt32Add(yMax, pad);
 
-	xMax = (int32) ((int64) xMax + 1);
-	yMax = (int32) ((int64) yMax + 1);
+	xMax = SafeInt32Add(xMax, 1);
+	yMax = SafeInt32Add(yMax, 1);
 
 	const dng_rect srcArea (yMin,
 							xMin,
@@ -1225,11 +1221,6 @@ dng_rect dng_filter_warp::SrcArea (const dng_rect &dstArea)
 
 /*****************************************************************************/
 
-#if defined(__clang__) && defined(__has_attribute)
-#if __has_attribute(no_sanitize)
-__attribute__((no_sanitize("float-cast-overflow")))
-#endif
-#endif
 dng_point dng_filter_warp::SrcTileSize (const dng_point &dstTileSize)
 	{
 
@@ -1266,14 +1257,14 @@ dng_point dng_filter_warp::SrcTileSize (const dng_point &dstTileSize)
 
 		const real64 maxSrcGap = fParams->MaxSrcRadiusGap (maxDstGap);
 
-		const int32 dim = (int32) ceil (maxSrcGap * fNormRadius);
+		const int32 dim = ConvertDoubleToInt32 (ceil (maxSrcGap * fNormRadius));
 
 		srcTileSize = dng_point (dim, dim);
 
 		}
 
-	srcTileSize.h += (int32) (fWeights.Width ());
-	srcTileSize.v += (int32) (fWeights.Width ());
+	srcTileSize.h += ConvertUint32ToInt32(fWeights.Width());
+	srcTileSize.v += ConvertUint32ToInt32(fWeights.Width());
 
 	// Get upper bound on src tile size from tangential warp.
 
@@ -1290,8 +1281,8 @@ dng_point dng_filter_warp::SrcTileSize (const dng_point &dstTileSize)
 
 	// Add the two bounds together.
 
-	srcTileSize.v = (int32) ((real64) srcTileSize.v + (real64) ceil (srcTanGap.v * fNormRadius));
-	srcTileSize.h = (int32) ((real64) srcTileSize.h + (real64) ceil (srcTanGap.h * fNormRadius));
+	srcTileSize.v += ConvertDoubleToInt32 (ceil (srcTanGap.v * fNormRadius));
+	srcTileSize.h += ConvertDoubleToInt32 (ceil (srcTanGap.h * fNormRadius));
 	
 	return srcTileSize;
 
@@ -1299,11 +1290,6 @@ dng_point dng_filter_warp::SrcTileSize (const dng_point &dstTileSize)
 
 /*****************************************************************************/
 		
-#if defined(__clang__) && defined(__has_attribute)
-#if __has_attribute(no_sanitize)
-__attribute__((no_sanitize("float-cast-overflow")))
-#endif
-#endif
 void dng_filter_warp::ProcessArea (uint32 /* threadIndex */,
 								   dng_pixel_buffer &srcBuffer,
 								   dng_pixel_buffer &dstBuffer)
@@ -1367,11 +1353,11 @@ void dng_filter_warp::ProcessArea (uint32 /* threadIndex */,
 
 				// Decompose into integer and fractional parts.
 
-				dng_point sInt ((int32) floor (sPos.v),
-								(int32) floor (sPos.h));
+				dng_point sInt (ConvertDoubleToInt32 (floor (sPos.v)),
+								ConvertDoubleToInt32 (floor (sPos.h)));
 
-				dng_point sFct ((int32) ((sPos.v - (real64) sInt.v) * numSubsamples),
-								(int32) ((sPos.h - (real64) sInt.h) * numSubsamples));
+				dng_point sFct (ConvertDoubleToInt32 ((sPos.v - (real64) sInt.v) * numSubsamples),
+								ConvertDoubleToInt32 ((sPos.h - (real64) sInt.h) * numSubsamples));
 
 				// Add resample offset.
 
