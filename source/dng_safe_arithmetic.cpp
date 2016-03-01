@@ -33,7 +33,9 @@ T SafeAdd(T arg1, T arg2) {
     return arg1 + arg2;
   } else {
     ThrowProgramError("Arithmetic overflow");
-    abort();  // Never reached.
+
+    // Dummy return statement.
+    return 0;
   }
 }
 
@@ -46,7 +48,9 @@ T SafeUnsignedMult(T arg1, T arg2) {
     return arg1 * arg2;
   } else {
     ThrowProgramError("Arithmetic overflow");
-    abort();  // Never reached.
+
+    // Dummy return statement.
+    return 0;
   }
 }
 
@@ -83,10 +87,6 @@ std::uint32_t SafeUint32Add(std::uint32_t arg1, std::uint32_t arg2) {
   return SafeAdd<std::uint32_t>(arg1, arg2);
 }
 
-std::uint64_t SafeUint64Add(std::uint64_t arg1, std::uint64_t arg2) {
-  return SafeAdd<std::uint64_t>(arg1, arg2);
-}
-
 bool SafeInt32Sub(std::int32_t arg1, std::int32_t arg2, std::int32_t *result) {
   if ((arg2 >= 0 && arg1 >= std::numeric_limits<int32_t>::min() + arg2) ||
       (arg2 < 0 && arg1 <= std::numeric_limits<int32_t>::max() + arg2)) {
@@ -105,15 +105,6 @@ std::int32_t SafeInt32Sub(std::int32_t arg1, std::int32_t arg2) {
   }
 
   return result;
-}
-
-std::uint32_t SafeUint32Sub(std::uint32_t arg1, std::uint32_t arg2) {
-  if (arg1 >= arg2) {
-    return arg1 - arg2;
-  } else {
-    ThrowProgramError("Arithmetic overflow");
-    abort();  // Never reached.
-  }
 }
 
 bool SafeUint32Mult(std::uint32_t arg1, std::uint32_t arg2,
@@ -160,24 +151,11 @@ std::uint32_t SafeUint32Mult(std::uint32_t arg1, std::uint32_t arg2,
   return SafeUint32Mult(SafeUint32Mult(arg1, arg2, arg3), arg4);
 }
 
-std::int32_t SafeInt32Mult(std::int32_t arg1, std::int32_t arg2) {
-  const std::int64_t tmp =
-      static_cast<std::int64_t>(arg1) * static_cast<std::int64_t>(arg2);
-  if (tmp >= INT32_MIN && tmp <= INT32_MAX) {
-    return static_cast<std::int32_t>(tmp);
-  } else {
-    ThrowProgramError("Arithmetic overflow");
-    abort();
-  }
-}
-
 std::size_t SafeSizetMult(std::size_t arg1, std::size_t arg2) {
   return SafeUnsignedMult<std::size_t>(arg1, arg2);
 }
 
-namespace dng_internal {
-
-std::int64_t SafeInt64MultSlow(std::int64_t arg1, std::int64_t arg2) {
+std::int64_t SafeInt64Mult(std::int64_t arg1, std::int64_t arg2) {
   bool overflow = true;
 
   if (arg1 > 0) {
@@ -196,13 +174,13 @@ std::int64_t SafeInt64MultSlow(std::int64_t arg1, std::int64_t arg2) {
 
   if (overflow) {
     ThrowProgramError("Arithmetic overflow");
-    abort();  // Never reached.
+
+    // Dummy return.
+    return 0;
   } else {
     return arg1 * arg2;
   }
 }
-
-}  // namespace dng_internal
 
 std::uint32_t SafeUint32DivideUp(std::uint32_t arg1, std::uint32_t arg2) {
   // It might seem more intuitive to implement this function simply as
@@ -213,7 +191,9 @@ std::uint32_t SafeUint32DivideUp(std::uint32_t arg1, std::uint32_t arg2) {
 
   if (arg2 == 0) {
     ThrowProgramError("Division by zero");
-    abort();  // Never reached.
+
+    // Dummy return to avoid compiler error about missing return statement.
+    return 0;
   } else if (arg1 == 0) {
     // If arg1 is zero, return zero to avoid wraparound in the expression
     //   "arg1 - 1" below.
@@ -225,57 +205,27 @@ std::uint32_t SafeUint32DivideUp(std::uint32_t arg1, std::uint32_t arg2) {
 
 bool RoundUpUint32ToMultiple(std::uint32_t val, std::uint32_t multiple_of,
                              std::uint32_t *result) {
-  try {
-    *result = RoundUpUint32ToMultiple(val, multiple_of);
-    return true;
-  } catch (const dng_exception &) {
-    return false;
-  }
-}
-
-std::uint32_t RoundUpUint32ToMultiple(std::uint32_t val,
-                                      std::uint32_t multiple_of) {
   if (multiple_of == 0) {
-    ThrowProgramError("multiple_of is zero in RoundUpUint32ToMultiple");
+    return false;
   }
 
   const std::uint32_t remainder = val % multiple_of;
   if (remainder == 0) {
-    return val;
+    *result = val;
+    return true;
   } else {
-    return SafeUint32Add(val, multiple_of - remainder);
+    return SafeUint32Add(val, multiple_of - remainder, result);
   }
 }
 
 bool ConvertUint32ToInt32(std::uint32_t val, std::int32_t *result) {
-  try {
-    *result = ConvertUint32ToInt32(val);
-    return true;
-  } catch (const dng_exception &) {
-    return false;
-  }
-}
-
-std::int32_t ConvertUint32ToInt32(std::uint32_t val) {
   const std::uint32_t kInt32MaxAsUint32 =
       static_cast<std::uint32_t>(std::numeric_limits<std::int32_t>::max());
 
   if (val <= kInt32MaxAsUint32) {
-    return static_cast<std::int32_t>(val);
+    *result = static_cast<std::int32_t>(val);
+    return true;
   } else {
-    ThrowProgramError("Arithmetic overflow");
-    abort();  // Never reached.
-  }
-}
-
-std::int32_t ConvertDoubleToInt32(double val) {
-  constexpr double kMin = static_cast<double>(INT32_MIN);
-  constexpr double kMax = static_cast<double>(INT32_MAX);
-  // NaNs will fail this test; they always compare false.
-  if (val > kMin - 1.0 && val < kMax + 1.0) {
-    return static_cast<std::int32_t>(val);
-  } else {
-    ThrowProgramError("Argument not in range in ConvertDoubleToInt32");
-    abort();  // Never reached.
+    return false;
   }
 }

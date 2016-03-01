@@ -50,7 +50,7 @@
 #if qDNGUseLibJPEG
 #include "dng_jpeglib.h"
 #endif
-
+	
 /*****************************************************************************/
 
 // Defines for testing DNG 1.2 features.
@@ -4901,9 +4901,9 @@ static void CopyBoolean (const dng_xmp &oldXMP,
 		}
 	
 	}
+								 
 	
 #endif
-							 
 /*****************************************************************************/
 
 void dng_image_writer::CleanUpMetadata (dng_host &host,
@@ -6506,7 +6506,7 @@ void dng_image_writer::WriteDNG (dng_host &host,
 		}
 
 	// XMP metadata.
-
+	
 	#if qDNGUseXMP
 		
 	tag_xmp tagXMP (metadata->GetXMP ());

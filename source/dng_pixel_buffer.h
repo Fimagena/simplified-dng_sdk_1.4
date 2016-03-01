@@ -126,7 +126,7 @@ class dng_pixel_buffer
 							  int32 col,
 					  	      uint32 plane = 0) const
 			{
-			
+
 			// Ensure pixel to be accessed lies inside valid area.
 			if (row < fArea.t || row >= fArea.b ||
 				col < fArea.l || col >= fArea.r ||

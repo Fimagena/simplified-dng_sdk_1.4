@@ -43,7 +43,6 @@
 #include "dng_tag_values.h"
 #include "dng_tile_iterator.h"
 #include "dng_utils.h"
-
 #if qDNGUseXMP
 #include "dng_xmp.h"
 #endif
@@ -238,9 +237,9 @@ void dng_metadata::ApplyOrientation (const dng_orientation &orientation)
 	{
 	
 	fBaseOrientation += orientation;
+	
 
 	#if qDNGUseXMP
-	
 	fXMP->SetOrientation (fBaseOrientation);
 	
 	#endif
@@ -546,7 +545,7 @@ void dng_metadata::ResetXMP (dng_xmp * newXMP)
 	{
 	
 	fXMP.Reset (newXMP);
-	
+
 	}
 
 /*****************************************************************************/
@@ -721,9 +720,9 @@ void dng_metadata::UpdateMetadataDateTimeToNow ()
 	
 	CurrentDateTimeAndZone (dt);
 	
-#if qDNGUseXMP
+	#if qDNGUseXMP
 	fXMP->UpdateMetadataDate (dt);
-#endif
+	#endif
 	
 	}
 					
@@ -1680,7 +1679,7 @@ class dng_find_new_raw_image_digest_task : public dng_area_task
 			const uint32 bufferSize =
 				ComputeBufferSize(fPixelType, tileSize, fImage.Planes(),
 								  padNone);
-			
+								
 			for (uint32 index = 0; index < threadCount; index++)
 				{
 				
@@ -4159,6 +4158,11 @@ void dng_negative::DoBuildStage3 (dng_host &host,
 									   
 /*****************************************************************************/
 
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
+__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
+#endif
 void dng_negative::BuildStage3Image (dng_host &host,
 									 int32 srcPlane)
 	{
@@ -4197,11 +4201,9 @@ void dng_negative::BuildStage3Image (dng_host &host,
 			
 			uint32 adjust = Round_uint32 (fRawToFullScaleH);
 			
-			fDefaultCropSizeH  .n =
-				SafeUint32Mult (fDefaultCropSizeH.n, adjust);
-			fDefaultCropOriginH.n =
-				SafeUint32Mult (fDefaultCropOriginH.n, adjust);
-			fDefaultScaleH     .d = SafeUint32Mult (fDefaultScaleH.d, adjust);
+			fDefaultCropSizeH  .n *= adjust;
+			fDefaultCropOriginH.n *= adjust;
+			fDefaultScaleH     .d *= adjust;
 			
 			fRawToFullScaleH /= (real64) adjust;
 			
@@ -4212,12 +4214,9 @@ void dng_negative::BuildStage3Image (dng_host &host,
 			
 			uint32 adjust = Round_uint32 (fRawToFullScaleV);
 			
-			fDefaultCropSizeV  .n =
-				SafeUint32Mult (fDefaultCropSizeV.n, adjust);
-			fDefaultCropOriginV.n =
-				SafeUint32Mult (fDefaultCropOriginV.n, adjust);
-			fDefaultScaleV     .d =
-				SafeUint32Mult (fDefaultScaleV.d, adjust);
+			fDefaultCropSizeV  .n *= adjust;
+			fDefaultCropOriginV.n *= adjust;
+			fDefaultScaleV     .d *= adjust;
 			
 			fRawToFullScaleV /= (real64) adjust;
 			

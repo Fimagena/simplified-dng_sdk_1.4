@@ -21,7 +21,6 @@
 #include "dng_image_writer.h"
 #include "dng_info.h"
 #include "dng_parse_utils.h"
-#include "dng_safe_arithmetic.h"
 #include "dng_tag_codes.h"
 #include "dng_tag_types.h"
 #include "dng_temperature.h"
@@ -899,6 +898,11 @@ void dng_camera_profile::ReadHueSatMap (dng_stream &stream,
 
 /*****************************************************************************/
 
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
+__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
+#endif
 void dng_camera_profile::Parse (dng_stream &stream,
 								dng_camera_profile_info &profileInfo)
 	{
@@ -967,10 +971,9 @@ void dng_camera_profile::Parse (dng_stream &stream,
 
 		stream.SetReadPosition (profileInfo.fHueSatDeltas1Offset);
 		
-		bool skipSat0 = (profileInfo.fHueSatDeltas1Count == SafeUint32Mult(
-														   profileInfo.fProfileHues,
-														   SafeUint32Sub(profileInfo.fProfileSats, 1),
-														   profileInfo.fProfileVals, 3));
+		bool skipSat0 = (profileInfo.fHueSatDeltas1Count == profileInfo.fProfileHues *
+														   (profileInfo.fProfileSats - 1) *
+														    profileInfo.fProfileVals * 3);
 
 		ReadHueSatMap (stream,
 					   fHueSatDeltas1,
@@ -989,10 +992,9 @@ void dng_camera_profile::Parse (dng_stream &stream,
 
 		stream.SetReadPosition (profileInfo.fHueSatDeltas2Offset);
 
-		bool skipSat0 = (profileInfo.fHueSatDeltas2Count == SafeUint32Mult(
-														   profileInfo.fProfileHues,
-														   SafeUint32Sub(profileInfo.fProfileSats, 1),
-														   profileInfo.fProfileVals, 3));
+		bool skipSat0 = (profileInfo.fHueSatDeltas2Count == profileInfo.fProfileHues *
+														   (profileInfo.fProfileSats - 1) *
+														    profileInfo.fProfileVals * 3);
 
 		ReadHueSatMap (stream,
 					   fHueSatDeltas2,
@@ -1011,10 +1013,9 @@ void dng_camera_profile::Parse (dng_stream &stream,
 
 		stream.SetReadPosition (profileInfo.fLookTableOffset);
 
-		bool skipSat0 = (profileInfo.fLookTableCount == SafeUint32Mult(
-													   profileInfo.fLookTableHues,
-													   SafeUint32Sub(profileInfo.fLookTableSats, 1),
-														 profileInfo.fLookTableVals, 3));
+		bool skipSat0 = (profileInfo.fLookTableCount == profileInfo.fLookTableHues *
+													   (profileInfo.fLookTableSats - 1) *
+														profileInfo.fLookTableVals * 3);
 
 		ReadHueSatMap (stream,
 					   fLookTable,

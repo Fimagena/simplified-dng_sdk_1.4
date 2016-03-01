@@ -19,7 +19,6 @@
 #include "dng_globals.h"
 #include "dng_host.h"
 #include "dng_pixel_buffer.h"
-#include "dng_safe_arithmetic.h"
 #include "dng_stream.h"
 #include "dng_tag_values.h"
 
@@ -249,6 +248,11 @@ void dng_gain_map_interpolator::ResetColumn ()
 
 /*****************************************************************************/
 
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
+__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
+#endif
 dng_gain_map::dng_gain_map (dng_memory_allocator &allocator,
 							const dng_point &points,
 							const dng_point_real64 &spacing,
@@ -260,7 +264,7 @@ dng_gain_map::dng_gain_map (dng_memory_allocator &allocator,
 	,	fOrigin  (origin)
 	,	fPlanes  (planes)
 	
-	,	fRowStep (SafeUint32Mult(planes, points.h))
+	,	fRowStep (planes * points.h)
 	
 	,	fBuffer ()
 	

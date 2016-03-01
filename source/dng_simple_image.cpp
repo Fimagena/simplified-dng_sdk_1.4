@@ -182,4 +182,3 @@ void dng_simple_image::AcquireTileBuffer (dng_tile_buffer &buffer,
 	}
 		
 /*****************************************************************************/
-

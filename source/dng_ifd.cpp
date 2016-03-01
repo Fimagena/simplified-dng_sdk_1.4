@@ -256,6 +256,11 @@ dng_ifd::~dng_ifd ()
 	
 /*****************************************************************************/
 
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
+__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
+#endif
 // Parses tags that should only appear in IFDs that contain images.
 
 bool dng_ifd::ParseTag (dng_stream &stream,
@@ -1536,9 +1541,9 @@ bool dng_ifd::ParseTag (dng_stream &stream,
 
 			CheckTagType (parentCode, tagCode, tagType, ttShort, ttLong, ttRational);
 
-			if (!CheckTagCount (parentCode, tagCode, tagCount, SafeUint32Mult(fBlackLevelRepeatRows,
-															   fBlackLevelRepeatCols,
-															   fSamplesPerPixel)))
+			if (!CheckTagCount (parentCode, tagCode, tagCount, fBlackLevelRepeatRows *
+															   fBlackLevelRepeatCols *
+															   fSamplesPerPixel))
 				{
 				return false;
 				}
@@ -2717,6 +2722,11 @@ bool dng_ifd::IsValidCFA (dng_shared &shared,
 	
 /*****************************************************************************/
 
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
+__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
+#endif
 bool dng_ifd::IsValidDNG (dng_shared &shared,
 					      uint32 parentCode)
 	{
@@ -3436,8 +3446,8 @@ bool dng_ifd::IsValidDNG (dng_shared &shared,
 		
 	// Check tile info.
 		
-	uint32 tilesWide = SafeUint32DivideUp(fImageWidth, fTileWidth);
-	uint32 tilesHigh = SafeUint32DivideUp(fImageLength, fTileLength);
+	uint32 tilesWide = (fImageWidth  + fTileWidth  - 1) / fTileWidth;
+	uint32 tilesHigh = (fImageLength + fTileLength - 1) / fTileLength;
 	
 	uint32 tileCount = tilesWide * tilesHigh;
 	
@@ -4051,31 +4061,37 @@ dng_rect dng_ifd::TileArea (uint32 rowIndex,
 			
 /*****************************************************************************/
 
+#if defined(__clang__) && defined(__has_attribute)
+#if __has_attribute(no_sanitize)
+__attribute__((no_sanitize("unsigned-integer-overflow")))
+#endif
+#endif
 uint32 dng_ifd::TileByteCount (const dng_rect &tile) const
 	{
 	
 	if (fCompression == ccUncompressed)
 		{
 		
-		uint32 bitsPerRow = SafeUint32Mult(tile.W (), fBitsPerSample [0]);
+		uint32 bitsPerRow = tile.W () *
+							fBitsPerSample [0];
 							
 		if (fPlanarConfiguration == pcInterleaved)
 			{
 			
-			bitsPerRow = SafeUint32Mult(bitsPerRow, fSamplesPerPixel);
+			bitsPerRow *= fSamplesPerPixel;
 			
 			}
 							
-		uint32 bytesPerRow = SafeUint32DivideUp(bitsPerRow, 8);
+		uint32 bytesPerRow = (bitsPerRow + 7) >> 3;
 		
 		if (fPlanarConfiguration == pcRowInterleaved)
 			{
 			
-			bytesPerRow = SafeUint32Mult(bytesPerRow, fSamplesPerPixel);
+			bytesPerRow *= fSamplesPerPixel;
 			
 			}
 		
-		return SafeUint32Mult(bytesPerRow, tile.H ());
+		return bytesPerRow * tile.H ();
 		
 		}
 

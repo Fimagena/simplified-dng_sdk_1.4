@@ -149,7 +149,7 @@ class dng_time_zone
 			
 		void SetOffsetHours (int32 offset)
 			{
-			fOffsetMinutes = SafeInt32Mult(offset, 60);
+			fOffsetMinutes = (int32) ((int64) offset * 60);
 			}
 			
 		void SetOffsetMinutes (int32 offset)

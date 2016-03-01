@@ -358,7 +358,7 @@ dng_pixel_buffer::dng_pixel_buffer ()
 	{
 	
 	}
-
+							
 /*****************************************************************************/
 
 dng_pixel_buffer::dng_pixel_buffer (const dng_rect &area,
@@ -382,7 +382,7 @@ dng_pixel_buffer::dng_pixel_buffer (const dng_rect &area,
 	{
 	
 	const char *overflowMessage = "Arithmetic overflow in pixel buffer setup";
-	
+
 	// Initialize fRowStep, fColStep and fPlaneStep according to the desired
 	// pixel layout.
 	switch (planarConfiguration)
