@@ -20,6 +20,7 @@
 #include "dng_globals.h"
 #include "dng_memory.h"
 #include "dng_parse_utils.h"
+#include "dng_safe_arithmetic.h"
 #include "dng_tag_codes.h"
 #include "dng_tag_types.h"
 #include "dng_tag_values.h"
@@ -96,11 +97,6 @@ dng_camera_profile_info::~dng_camera_profile_info ()
 							 		 
 /*****************************************************************************/
 
-#if defined(__clang__) && defined(__has_attribute) 
-#if __has_attribute(no_sanitize)
-__attribute__((no_sanitize("unsigned-integer-overflow")))
-#endif
-#endif
 bool dng_camera_profile_info::ParseTag (dng_stream &stream,
 										uint32 parentCode,
 										uint32 tagCode,
@@ -588,9 +584,11 @@ bool dng_camera_profile_info::ParseTag (dng_stream &stream,
 			if (!CheckTagType (parentCode, tagCode, tagType, ttFloat))
 				return false;
 				
-			bool skipSat0 = (tagCount == fProfileHues *
-										(fProfileSats - 1) * 
-										 fProfileVals * 3);
+			bool skipSat0 = (tagCount ==
+							 SafeUint32Mult(fProfileHues,
+											SafeUint32Sub(fProfileSats, 1u),
+											fProfileVals,
+											3u));
 			
 			if (!skipSat0)
 				{
@@ -634,9 +632,11 @@ bool dng_camera_profile_info::ParseTag (dng_stream &stream,
 			if (!CheckTagType (parentCode, tagCode, tagType, ttFloat))
 				return false;
 			
-			bool skipSat0 = (tagCount == fProfileHues *
-										(fProfileSats - 1) * 
-										 fProfileVals * 3);
+			bool skipSat0 = (tagCount ==
+							 SafeUint32Mult(fProfileHues,
+											SafeUint32Sub(fProfileSats, 1u),
+											fProfileVals,
+											3u));
 			
 			if (!skipSat0)
 				{
@@ -755,9 +755,11 @@ bool dng_camera_profile_info::ParseTag (dng_stream &stream,
 			if (!CheckTagType (parentCode, tagCode, tagType, ttFloat))
 				return false;
 			
-			bool skipSat0 = (tagCount == fLookTableHues *
-										(fLookTableSats - 1) * 
-										 fLookTableVals * 3);
+			bool skipSat0 = (tagCount ==
+							 SafeUint32Mult(fLookTableHues,
+											SafeUint32Sub(fLookTableSats, 1u),
+											fLookTableVals,
+											3u));
 			
 			if (!skipSat0)
 				{
@@ -1028,11 +1030,6 @@ bool dng_camera_profile_info::ParseTag (dng_stream &stream,
 
 /*****************************************************************************/
 
-#if defined(__clang__) && defined(__has_attribute)
-#if __has_attribute(no_sanitize)
-__attribute__((no_sanitize("unsigned-integer-overflow")))
-#endif
-#endif
 bool dng_camera_profile_info::ParseExtended (dng_stream &stream)
 	{
 
@@ -1069,7 +1066,7 @@ bool dng_camera_profile_info::ParseExtended (dng_stream &stream)
 
 		uint32 offset = stream.Get_uint32 ();
 
-		stream.Skip (offset - 8);
+		stream.Skip (SafeUint32Sub(offset, 8u));
 
 		// Start on IFD entries.
 
@@ -1091,7 +1088,7 @@ bool dng_camera_profile_info::ParseExtended (dng_stream &stream)
 			
 			uint64 tagOffset = stream.Position ();
 
-			if (TagTypeSize (tagType) * tagCount > 4)
+			if (SafeUint32Mult(TagTypeSize (tagType), tagCount) > 4)
 				{
 
 				tagOffset = startPosition + stream.Get_uint32 ();
@@ -1353,7 +1350,8 @@ bool dng_shared::Parse_ifd0 (dng_stream &stream,
 			
 			CheckTagType (parentCode, tagCode, tagType, ttLong, ttAscii, ttUndefined);
 			
-			fIPTC_NAA_Count = SafeUint32Mult(tagCount, TagTypeSize(tagType));
+			fIPTC_NAA_Count = SafeUint32Mult(tagCount,
+														  TagTypeSize(tagType));
 			fIPTC_NAA_Offset = fIPTC_NAA_Count ? tagOffset : 0;
 			
 			#if qDNGValidate

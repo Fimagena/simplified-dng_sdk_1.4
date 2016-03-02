@@ -158,7 +158,7 @@
 
 #ifndef qDNG64Bit
 
-#if qMacOS
+#if qMacOS || qLinux
 
 #ifdef __LP64__
 #if    __LP64__

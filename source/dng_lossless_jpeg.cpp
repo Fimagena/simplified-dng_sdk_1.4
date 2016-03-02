@@ -254,7 +254,7 @@ static void FixHuffTbl (HuffmanTable *htbl)
                 {
                 ThrowBadFormat ();
                 }
-            	
+	
             for (i = ll; i <= ul; i++)
             	{
                 htbl->numbits [i] = size;
@@ -1680,7 +1680,7 @@ inline int32 dng_lossless_decoder::HuffDecode (HuffmanTable *htbl)
 
 inline void dng_lossless_decoder::HuffExtend (int32 &x, int32 s)
 	{
-	
+
 	if (x < (0x08000 >> (16 - s)))
 		{
 		x += -(1 << s) + 1;

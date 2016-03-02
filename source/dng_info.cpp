@@ -21,6 +21,7 @@
 #include "dng_host.h"
 #include "dng_tag_codes.h"
 #include "dng_parse_utils.h"
+#include "dng_safe_arithmetic.h"
 #include "dng_tag_types.h"
 #include "dng_tag_values.h"
 #include "dng_utils.h"
@@ -334,11 +335,6 @@ void dng_info::ParseTag (dng_host &host,
 
 /*****************************************************************************/
 
-#if defined(__clang__) && defined(__has_attribute)
-#if __has_attribute(no_sanitize)
-__attribute__((no_sanitize("unsigned-integer-overflow")))
-#endif
-#endif
 bool dng_info::ValidateIFD (dng_stream &stream,
 						    uint64 ifdOffset,
 						    int64 offsetDelta)
@@ -388,7 +384,7 @@ bool dng_info::ValidateIFD (dng_stream &stream,
 			return false;
 			}
 			
-		uint32 tag_data_size = tagCount * tag_type_size;
+		uint32 tag_data_size = SafeUint32Mult(tagCount, tag_type_size);
 						
 		if (tag_data_size > 4)
 			{
@@ -397,7 +393,7 @@ bool dng_info::ValidateIFD (dng_stream &stream,
 							
 			tagOffset += offsetDelta;
 			
-			if (tagOffset + tag_data_size > stream.Length ())
+			if (SafeUint64Add(tagOffset, tag_data_size) > stream.Length())
 				{
 				return false;
 				}
@@ -412,11 +408,6 @@ bool dng_info::ValidateIFD (dng_stream &stream,
 
 /*****************************************************************************/
 
-#if defined(__clang__) && defined(__has_attribute)
-#if __has_attribute(no_sanitize)
-__attribute__((no_sanitize("unsigned-integer-overflow")))
-#endif
-#endif
 void dng_info::ParseIFD (dng_host &host,
 						 dng_stream &stream,
 						 dng_exif *exif,
@@ -558,7 +549,7 @@ void dng_info::ParseIFD (dng_host &host,
 			
 		uint64 tagOffset = ifdOffset + 2 + tag_index * 12 + 8;
 		
-		if (tagCount * tag_type_size > 4)
+		if (SafeUint32Mult(tagCount, tag_type_size) > 4)
 			{
 			
 			tagOffset = stream.Get_uint32 ();
@@ -662,11 +653,6 @@ void dng_info::ParseIFD (dng_host &host,
 						 
 /*****************************************************************************/
 
-#if defined(__clang__) && defined(__has_attribute)
-#if __has_attribute(no_sanitize)
-__attribute__((no_sanitize("unsigned-integer-overflow")))
-#endif
-#endif
 bool dng_info::ParseMakerNoteIFD (dng_host &host,
 								  dng_stream &stream,
 								  uint64 ifdSize,
@@ -760,7 +746,7 @@ bool dng_info::ParseMakerNoteIFD (dng_host &host,
 			continue;
 			}
 		
-		uint32 tagSize = tagCount * TagTypeSize (tagType);
+		uint32 tagSize = SafeUint32Mult(tagCount, TagTypeSize (tagType));
 		
 		uint64 tagOffset = ifdOffset + 2 + tagIndex * 12 + 8;
 		
@@ -770,7 +756,7 @@ bool dng_info::ParseMakerNoteIFD (dng_host &host,
 			tagOffset = stream.Get_uint32 () + offsetDelta;
 			
 			if (tagOffset           < minOffset ||
-				tagOffset + tagSize > maxOffset)
+				SafeUint64Add(tagOffset, tagSize) > maxOffset)
 				{
 				
 				// Tag data is outside the valid offset range,
@@ -1427,11 +1413,6 @@ void dng_info::ParseSonyPrivateData (dng_host & /* host */,
 							   		 
 /*****************************************************************************/
 
-#if defined(__clang__) && defined(__has_attribute)
-#if __has_attribute(no_sanitize)
-__attribute__((no_sanitize("unsigned-integer-overflow")))
-#endif
-#endif
 void dng_info::ParseDNGPrivateData (dng_host &host,
 									dng_stream &stream)
 	{
@@ -1543,7 +1524,7 @@ void dng_info::ParseDNGPrivateData (dng_host &host,
 			uint16 order_mark = stream.Get_uint16 ();
 			int64 old_offset = stream.Get_uint32 ();
 
-			uint32 tempSize = section_count - 6;
+			uint32 tempSize = SafeUint32Sub(section_count, 6);
 			
 			AutoPtr<dng_memory_block> tempBlock (host.Allocate (tempSize));
 			
@@ -1629,7 +1610,7 @@ void dng_info::ParseDNGPrivateData (dng_host &host,
 						  tagOffset,
 						  0);
 						  
-				stream.SetReadPosition (tagOffset + tagCount);
+				stream.SetReadPosition (SafeUint64Add(tagOffset, tagCount));
 				
 				}
 			
@@ -1654,7 +1635,7 @@ void dng_info::ParseDNGPrivateData (dng_host &host,
 						  tagOffset,
 						  0);
 						  
-				stream.SetReadPosition (tagOffset + tagCount);
+				stream.SetReadPosition (SafeUint64Add(tagOffset, tagCount));
 				
 				}
 			
@@ -1679,7 +1660,7 @@ void dng_info::ParseDNGPrivateData (dng_host &host,
 						  tagOffset,
 						  0);
 						  
-				stream.SetReadPosition (tagOffset + tagCount);
+				stream.SetReadPosition (SafeUint64Add(tagOffset, tagCount));
 				
 				}
 			
@@ -1860,7 +1841,7 @@ void dng_info::ParseDNGPrivateData (dng_host &host,
 					
 					uint32 tagCount = stream.Get_uint32 ();
 					
-					uint32 tagSize = tagCount * TagTypeSize (tagType);
+					uint32 tagSize = SafeUint32Mult(tagCount, TagTypeSize (tagType));
 					
 					uint64 tagOffset = stream.Position ();
 					
@@ -1878,7 +1859,7 @@ void dng_info::ParseDNGPrivateData (dng_host &host,
 							  tagOffset,
 							  0);
 					
-					stream.SetReadPosition (tagOffset + tagSize);
+					stream.SetReadPosition (SafeUint64Add(tagOffset, tagSize));
 					
 					}
 					

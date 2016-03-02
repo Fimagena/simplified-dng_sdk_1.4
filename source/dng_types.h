@@ -32,7 +32,11 @@
 
 /*****************************************************************************/
 
-#if qDNGUseStdInt || 1
+#if qDNGUseCustomIntegralTypes
+
+#include "dng_custom_integral_types.h"
+
+#elif qDNGUseStdInt || 1
 
 typedef int8_t  int8;
 typedef int16_t int16;
