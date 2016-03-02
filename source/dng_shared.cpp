@@ -593,9 +593,8 @@ bool dng_camera_profile_info::ParseTag (dng_stream &stream,
 			if (!skipSat0)
 				{
 			
-				if (!CheckTagCount (parentCode, tagCode, tagCount, fProfileHues *
-																   fProfileSats * 
-																   fProfileVals * 3))
+				if (!CheckTagCount (parentCode, tagCode, tagCount,
+									SafeUint32Mult(fProfileHues, fProfileSats, fProfileVals, 3)))
 					return false;
 					
 				}

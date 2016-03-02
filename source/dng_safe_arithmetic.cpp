@@ -163,7 +163,8 @@ std::uint32_t SafeUint32Mult(std::uint32_t arg1, std::uint32_t arg2,
 std::int32_t SafeInt32Mult(std::int32_t arg1, std::int32_t arg2) {
   const std::int64_t tmp =
       static_cast<std::int64_t>(arg1) * static_cast<std::int64_t>(arg2);
-  if (tmp >= INT32_MIN && tmp <= INT32_MAX) {
+  if (tmp >= std::numeric_limits<std::int32_t>::min() &&
+      tmp <= std::numeric_limits<std::int32_t>::max()) {
     return static_cast<std::int32_t>(tmp);
   } else {
     ThrowProgramError("Arithmetic overflow");
@@ -182,15 +183,16 @@ std::int64_t SafeInt64MultSlow(std::int64_t arg1, std::int64_t arg2) {
 
   if (arg1 > 0) {
     if (arg2 > 0) {
-      overflow = (arg1 > INT64_MAX / arg2);
+      overflow = (arg1 > std::numeric_limits<std::int64_t>::max() / arg2);
     } else {
-      overflow = (arg2 < INT64_MIN / arg1);
+      overflow = (arg2 < std::numeric_limits<std::int64_t>::min() / arg1);
     }
   } else {
     if (arg2 > 0) {
-      overflow = (arg1 < INT64_MIN / arg2);
+      overflow = (arg1 < std::numeric_limits<std::int64_t>::min() / arg2);
     } else {
-      overflow = (arg1 != 0 && arg2 < INT64_MAX / arg1);
+      overflow = (arg1 != 0 &&
+                  arg2 < std::numeric_limits<std::int64_t>::max() / arg1);
     }
   }
 
@@ -269,13 +271,27 @@ std::int32_t ConvertUint32ToInt32(std::uint32_t val) {
 }
 
 std::int32_t ConvertDoubleToInt32(double val) {
-  const double kMin = static_cast<double>(INT32_MIN);
-  const double kMax = static_cast<double>(INT32_MAX);
+  const double kMin =
+      static_cast<double>(std::numeric_limits<std::int32_t>::min());
+  const double kMax =
+      static_cast<double>(std::numeric_limits<std::int32_t>::max());
   // NaNs will fail this test; they always compare false.
   if (val > kMin - 1.0 && val < kMax + 1.0) {
     return static_cast<std::int32_t>(val);
   } else {
     ThrowProgramError("Argument not in range in ConvertDoubleToInt32");
+    abort();  // Never reached.
+  }
+}
+
+std::uint32_t ConvertDoubleToUint32(double val) {
+  const double kMax =
+      static_cast<double>(std::numeric_limits<std::uint32_t>::max());
+  // NaNs will fail this test; they always compare false.
+  if (val >= 0.0 && val < kMax + 1.0) {
+    return static_cast<std::uint32_t>(val);
+  } else {
+    ThrowProgramError("Argument not in range in ConvertDoubleToUint32");
     abort();  // Never reached.
   }
 }
