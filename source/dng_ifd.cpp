@@ -1326,8 +1326,8 @@ bool dng_ifd::ParseTag (dng_stream &stream,
 				return false;
 				}
 			
-			if (!CheckTagCount (parentCode, tagCode, tagCount, fCFARepeatPatternRows *
-															   fCFARepeatPatternCols))
+			if (!CheckTagCount (parentCode, tagCode, tagCount,
+								SafeUint32Mult(fCFARepeatPatternRows, fCFARepeatPatternCols)))
 				{
 				return false;
 				}
