@@ -129,9 +129,12 @@ inline std::int64_t SafeInt64MultByClang(std::int64_t arg1, std::int64_t arg2) {
 #ifdef DNG_HAS_INT128
 inline std::int64_t SafeInt64MultByInt128(std::int64_t arg1,
                                           std::int64_t arg2) {
+  const __int128 kInt64Max =
+      static_cast<__int128>(std::numeric_limits<std::int64_t>::max());
+  const __int128 kInt64Min =
+      static_cast<__int128>(std::numeric_limits<std::int64_t>::min());
   __int128 result = static_cast<__int128>(arg1) * static_cast<__int128>(arg2);
-  if (result > static_cast<__int128>(INT64_MAX) ||
-      result < static_cast<__int128>(INT64_MIN)) {
+  if (result > kInt64Max || result < kInt64Min) {
     ThrowProgramError("Arithmetic overflow");
   }
   return static_cast<std::int64_t>(result);
@@ -213,9 +216,10 @@ static void ConvertUnsigned(TSrc src, TDest *dest) {
   *dest = converted;
 }
 
-// Returns the result of converting val to an int32_t using truncation if val is
-// in range of int32_t values. Otherwise, throws a dng_exception with error code
-// dng_error_unknown.
+// Returns the result of converting val to the result type using truncation if
+// val is in range of the result type values. Otherwise, throws a dng_exception
+// with error code dng_error_unknown.
 std::int32_t ConvertDoubleToInt32(double val);
+std::uint32_t ConvertDoubleToUint32(double val);
 
 #endif  // __dng_safe_arithmetic__

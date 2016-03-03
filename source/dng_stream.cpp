@@ -819,7 +819,7 @@ uint32 dng_stream::TagValue_uint32 (uint32 tagType)
 	if (x > (real64) 0xFFFFFFFF)
 		x = (real64) 0xFFFFFFFF;
 		
-	return (uint32) (x + 0.5);
+	return ConvertDoubleToUint32(x + 0.5);
 	
 	}
 	
@@ -960,7 +960,7 @@ dng_urational dng_stream::TagValue_urational (uint32 tagType)
 					
 					}
 				
-				result.n = (uint32) (x + 0.5);
+				result.n = ConvertDoubleToUint32(x + 0.5);
 				
 				}
 			
@@ -1012,7 +1012,7 @@ dng_srational dng_stream::TagValue_srational (uint32 tagType)
 					
 					}
 				
-				result.n = (int32) (x + 0.5);
+				result.n = ConvertDoubleToInt32(x + 0.5);
 				
 				}
 				
@@ -1028,7 +1028,7 @@ dng_srational dng_stream::TagValue_srational (uint32 tagType)
 					
 					}
 				
-				result.n = (int32) (x - 0.5);
+				result.n = ConvertDoubleToInt32(x - 0.5);
 				
 				}
 			
