@@ -18,6 +18,7 @@
 
 /*****************************************************************************/
 
+#include <cmath>
 #include <limits>
 
 #include "dng_classes.h"
@@ -708,11 +709,11 @@ inline void DNG_HSVtoRGB (real32 h,
 	if (s > 0.0f)
 		{
 		
+		if (!std::isfinite(h))
+			ThrowProgramError("Unexpected NaN or Inf");
+		h = std::fmod(h, 6.0f);
 		if (h < 0.0f)
 			h += 6.0f;
-			
-		if (h >= 6.0f)
-			h -= 6.0f;
 			
 		int32  i = (int32) h;
 		real32 f = h - (real32) i;
