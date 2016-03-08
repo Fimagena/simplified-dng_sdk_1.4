@@ -850,7 +850,7 @@ int32 dng_stream::TagValue_int32 (uint32 tagType)
 		if (x < -2147483648.0)
 			x = -2147483648.0;
 			
-		return (int32) (x - 0.5);
+		return ConvertDoubleToInt32(x - 0.5);
 		
 		}
 		
@@ -860,7 +860,7 @@ int32 dng_stream::TagValue_int32 (uint32 tagType)
 		if (x > 2147483647.0)
 			x = 2147483647.0;
 		
-		return (int32) (x + 0.5);
+		return ConvertDoubleToInt32(x + 0.5);
 		
 		}
 		

@@ -222,4 +222,9 @@ static void ConvertUnsigned(TSrc src, TDest *dest) {
 std::int32_t ConvertDoubleToInt32(double val);
 std::uint32_t ConvertDoubleToUint32(double val);
 
+// Returns the result of converting val to float. If val is outside of
+// [-FLT_MAX, FLT_MAX], -infinity and infinity is returned respectively. NaN is
+// returned as NaN.
+float ConvertDoubleToFloat(double val);
+
 #endif  // __dng_safe_arithmetic__

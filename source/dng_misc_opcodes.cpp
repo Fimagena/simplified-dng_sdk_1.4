@@ -293,7 +293,10 @@ dng_opcode_MapTable::dng_opcode_MapTable (dng_host &host,
 	
 	fCount = stream.Get_uint32 ();
 	
-	if (dataSize != dng_area_spec::kDataSize + 4 + fCount * 2)
+	uint32 requiredSize = SafeUint32Mult(fCount, 2);
+	requiredSize = SafeUint32Add(requiredSize, dng_area_spec::kDataSize);
+	requiredSize = SafeUint32Add(requiredSize, 4);
+	if (dataSize != requiredSize)
 		{
 		ThrowBadFormat ();
 		}
@@ -591,7 +594,7 @@ uint32 dng_opcode_MapPolynomial::BufferPixelType (uint32 imagePixelType)
 	for (uint32 j = 0; j <= kMaxDegree; j++)
 		{
 		
-		fCoefficient32 [j] = (real32) (fCoefficient [j] * factor32);
+		fCoefficient32 [j] = ConvertDoubleToFloat(fCoefficient [j] * factor32);
 		
 		factor32 *= scale32;
 		

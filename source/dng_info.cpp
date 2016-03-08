@@ -1501,10 +1501,11 @@ void dng_info::ParseDNGPrivateData (dng_host &host,
 	
 	uint32 section_offset = 6;
 	
-	while (section_offset + 8 < fShared->fDNGPrivateDataCount)
+	while (SafeUint32Add(section_offset, 8) < fShared->fDNGPrivateDataCount)
 		{
 		
-		stream.SetReadPosition (fShared->fDNGPrivateDataOffset + section_offset);
+		stream.SetReadPosition (SafeUint64Add(fShared->fDNGPrivateDataOffset,
+												section_offset));
 		
 		uint32 section_key   = stream.Get_uint32 ();
 		uint32 section_count = stream.Get_uint32 ();
@@ -1867,11 +1868,12 @@ void dng_info::ParseDNGPrivateData (dng_host &host,
 			
 			}
 		
-		section_offset += 8 + section_count;
+		section_offset = SafeUint32Add(section_offset, 8);
+		section_offset = SafeUint32Add(section_offset, section_count);
 		
 		if (section_offset & 1)
 			{
-			section_offset++;
+			section_offset = SafeUint32Add(section_offset, 1);
 			}
 		
 		}
