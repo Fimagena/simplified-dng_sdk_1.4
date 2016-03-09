@@ -552,6 +552,7 @@ class dng_std_allocator
 		// Default implementations of default constructor and copy constructor.
 		dng_std_allocator () = default;
 		dng_std_allocator (const dng_std_allocator&) = default;
+		template<typename U> dng_std_allocator (const dng_std_allocator<U>&) {}
 		
 		T* allocate (size_t n)
 			{

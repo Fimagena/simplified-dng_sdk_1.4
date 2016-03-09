@@ -1,5 +1,6 @@
 #include "dng_safe_arithmetic.h"
 
+#include <cmath>
 #include <limits>
 
 #include "dng_exceptions.h"
@@ -293,5 +294,19 @@ std::uint32_t ConvertDoubleToUint32(double val) {
   } else {
     ThrowProgramError("Argument not in range in ConvertDoubleToUint32");
     abort();  // Never reached.
+  }
+}
+
+float ConvertDoubleToFloat(double val) {
+  const double kMax = std::numeric_limits<float>::max();
+  if (val > kMax) {
+    return std::numeric_limits<float>::infinity();
+  } else if (val < -kMax) {
+    return -std::numeric_limits<float>::infinity();
+  } else {
+    // The cases that end up here are:
+    // - values in [-kMax, kMax]
+    // - NaN (because it always compares false)
+    return static_cast<float>(val);
   }
 }
