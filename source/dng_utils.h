@@ -18,6 +18,8 @@
 
 /*****************************************************************************/
 
+#include <limits>
+
 #include "dng_classes.h"
 #include "dng_flags.h"
 #include "dng_memory.h"
@@ -481,7 +483,8 @@ inline int32 Round_int32 (real64 x)
 	
 	// NaNs will fail this test (because NaNs compare false against
 	// everything) and will therefore also take the else branch.
-	if (temp > real64(INT32_MIN) - 1.0 && temp < real64(INT32_MAX) + 1.0)
+	if (temp > real64(std::numeric_limits<int32>::min()) - 1.0 &&
+			temp < real64(std::numeric_limits<int32>::max()) + 1.0)
 		{
 		return (int32) temp;
 		}
@@ -509,7 +512,7 @@ inline uint32 Floor_uint32 (real64 x)
 	
 	// NaNs will fail this test (because NaNs compare false against
 	// everything) and will therefore also take the else branch.
-	if (temp < real64(UINT32_MAX) + 1.0)
+	if (temp < real64(std::numeric_limits<uint32>::max()) + 1.0)
 		{
 		return (uint32) temp;
 		}
