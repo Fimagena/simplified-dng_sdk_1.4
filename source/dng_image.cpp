@@ -553,8 +553,8 @@ void dng_image::Get (dng_pixel_buffer &buffer,
 					 edgeOption,
 					 dng_rect (fBounds.t,
 					 		   fBounds.l,
-					 		   fBounds.t + repeatV,
-					 		   fBounds.l + repeatH),
+					 		   fBounds.t + (int)repeatV,
+					 		   fBounds.l + (int)repeatH),
 					 areaTL);
 			
 			}
@@ -570,7 +570,7 @@ void dng_image::Get (dng_pixel_buffer &buffer,
 					 edgeOption,
 					 dng_rect (fBounds.t,
 					 		   areaTM.l,
-					 		   fBounds.t + repeatV,
+					 		   fBounds.t + (int)repeatV,
 					 		   areaTM.r),
 					 areaTM);
 			
@@ -586,8 +586,8 @@ void dng_image::Get (dng_pixel_buffer &buffer,
 			GetEdge (buffer,
 					 edgeOption,
 					 dng_rect (fBounds.t,
-					 		   fBounds.r - repeatH,
-					 		   fBounds.t + repeatV,
+					 		   fBounds.r - (int)repeatH,
+					 		   fBounds.t + (int)repeatV,
 					 		   fBounds.r),
 					 areaTR);
 			
@@ -605,7 +605,7 @@ void dng_image::Get (dng_pixel_buffer &buffer,
 					 dng_rect (areaLM.t,
 					 		   fBounds.l,
 					 		   areaLM.b,
-					 		   fBounds.l + repeatH),
+					 		   fBounds.l + (int)repeatH),
 					 areaLM);
 			
 			}
@@ -620,7 +620,7 @@ void dng_image::Get (dng_pixel_buffer &buffer,
 			GetEdge (buffer,
 					 edgeOption,
 					 dng_rect (areaRM.t,
-					 		   fBounds.r - repeatH,
+					 		   fBounds.r - (int)repeatH,
 					 		   areaRM.b,
 					 		   fBounds.r),
 					 areaRM);
@@ -636,10 +636,10 @@ void dng_image::Get (dng_pixel_buffer &buffer,
 			
 			GetEdge (buffer,
 					 edgeOption,
-					 dng_rect (fBounds.b - repeatV,
+					 dng_rect (fBounds.b - (int)repeatV,
 					 		   fBounds.l,
 					 		   fBounds.b,
-					 		   fBounds.l + repeatH),
+					 		   fBounds.l + (int)repeatH),
 					 areaBL);
 			
 			}
@@ -653,7 +653,7 @@ void dng_image::Get (dng_pixel_buffer &buffer,
 			
 			GetEdge (buffer,
 					 edgeOption,
-					 dng_rect (fBounds.b - repeatV,
+					 dng_rect (fBounds.b - (int)repeatV,
 					 		   areaBM.l,
 					 		   fBounds.b,
 					 		   areaBM.r),
@@ -670,8 +670,8 @@ void dng_image::Get (dng_pixel_buffer &buffer,
 			
 			GetEdge (buffer,
 					 edgeOption,
-					 dng_rect (fBounds.b - repeatV,
-					 		   fBounds.r - repeatH,
+					 dng_rect (fBounds.b - (int)repeatV,
+					 		   fBounds.r - (int)repeatH,
 					 		   fBounds.b,
 					 		   fBounds.r),
 					 areaBR);
