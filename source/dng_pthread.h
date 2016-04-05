@@ -53,6 +53,14 @@
 
 #endif
 
+// Use the standard "timespec" struct for VS2015 and above from <time.h>. Define
+// "dng_timespec" as "timespec" otherwise.
+#if _MSC_VER >= 1900
+#include <time.h>
+#else
+#define timespec dng_timespec
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -66,7 +74,6 @@ struct dng_timespec {
 	long tv_sec;
 	long tv_nsec;
 };
-
 
 typedef unsigned long dng_pthread_t;
 
@@ -178,8 +185,6 @@ void dng_pthread_terminate();
 
 #undef PTHREAD_ONCE_INIT
 #define PTHREAD_ONCE_INIT DNG_PTHREAD_ONCE_INIT
-
-#define timespec dng_timespec
 
 /* If it is defined on Windows, it probably has the wrong value... */
 #if defined(WIN32) || !defined(ETIMEDOUT)
