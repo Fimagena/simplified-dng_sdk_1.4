@@ -53,11 +53,16 @@
 
 #endif
 
-// Use the standard "timespec" struct for VS2015 and above from <time.h>. Define
-// "dng_timespec" as "timespec" otherwise.
+// Use the standard "timespec" struct as "dng_timespec" for VS2015 and above
+// from <time.h>. Define "dng_timespec" as "timespec" otherwise.
 #if _MSC_VER >= 1900
 #include <time.h>
+#define dng_timespec timespec
 #else
+struct dng_timespec {
+	long tv_sec;
+	long tv_nsec;
+};
 #define timespec dng_timespec
 #endif
 
@@ -69,11 +74,6 @@ extern "C"
 /*****************************************************************************/
 
 #define DNG_ETIMEDOUT       60              /* Operation timed out */
-
-struct dng_timespec {
-	long tv_sec;
-	long tv_nsec;
-};
 
 typedef unsigned long dng_pthread_t;
 
