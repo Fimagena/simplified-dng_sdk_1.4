@@ -123,17 +123,15 @@ LOCAL_CFLAGS += -Wno-ignored-qualifiers
 LOCAL_CLANG := true
 LOCAL_SANITIZE := unsigned-integer-overflow signed-integer-overflow
 
-LOCAL_STATIC_LIBRARIES := libz libjpeg_static
+LOCAL_STATIC_LIBRARIES := libjpeg_static_ndk
+LOCAL_SHARED_LIBRARIES := libz
 
 LOCAL_CPP_FEATURES := rtti exceptions
 LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH)/source
 
 # NDK build, shared C++ runtime
-# LOCAL_SDK_VERSION := current
-# LOCAL_NDK_STL_VARIANT := c++_shared
-
-# Temporary workaround until camera2 NDK is active. See b/27102995.
-LOCAL_CXX_STL := libc++_static
+LOCAL_SDK_VERSION := 24
+LOCAL_NDK_STL_VARIANT := c++_shared
 
 include $(BUILD_STATIC_LIBRARY)
 
